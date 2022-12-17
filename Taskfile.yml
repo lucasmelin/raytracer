@@ -1,0 +1,15 @@
+version: "3"
+
+tasks:
+  run:
+    cmds:
+      - go run main.go > image.ppm
+    generates:
+      - image.ppm
+  view:
+    cmds:
+      - open -a Preview image.ppm
+  pngify:
+    deps: [run]
+    cmds:
+      - convert image.ppm image.png
