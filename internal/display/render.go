@@ -49,7 +49,7 @@ func newCamera(aspectRatio float64, viewportWidth float64, viewportHeight float6
 	return camera
 }
 
-func (f Frame) Render(out io.Writer, aspectRatio float64, s geometry.Sphere) {
+func (f Frame) Render(out io.Writer, aspectRatio float64, h geometry.Hittable) {
 	header := fmt.Sprintf("%s\n%d %d\n%d", asciiColorPalette, f.Width, f.Height, maxColor)
 	fmt.Fprintln(out, header)
 
@@ -69,7 +69,7 @@ func (f Frame) Render(out io.Writer, aspectRatio float64, s geometry.Sphere) {
 				cam.origin,
 				cam.lowerLeftCorner.Add((cam.horizontal.Scale(u)).Add(cam.vertical.Scale(v))).ToUnit(),
 			)
-			c := rayColor(r, s)
+			c := rayColor(r, h)
 			WriteColor(out, c)
 		}
 	}
