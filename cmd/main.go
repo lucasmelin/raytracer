@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/lucasmelin/raytracer/internal/display"
+	"github.com/lucasmelin/raytracer/internal/geometry"
 )
 
 func main() {
@@ -11,5 +12,7 @@ func main() {
 	imageWidth := 400
 	imageHeight := int(float64(imageWidth) / aspectRatio)
 
-	display.Render(os.Stdout, imageWidth, imageHeight, aspectRatio)
+	frame := display.Frame{Width: imageWidth, Height: imageHeight}
+	sphere := geometry.NewSphere(geometry.NewVec(0, 0, -1), 0.5)
+	frame.Render(os.Stdout, aspectRatio, sphere)
 }
