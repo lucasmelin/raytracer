@@ -33,10 +33,29 @@ func (c Color) Blue() float64 {
 	return c.E[2]
 }
 
+// WriteColor writes the color to the writer.
 func WriteColor(out io.Writer, c Color) {
 	hueRed := toHue(c.Red())
 	hueGreen := toHue(c.Green())
 	hueBlue := toHue(c.Blue())
 
 	fmt.Fprintln(out, hueRed, hueGreen, hueBlue)
+}
+
+// Add returns the sum of two colors.
+func (c Color) Plus(c2 Color) Color {
+	return Color{Vec: c.Vec.Add(c2.Vec)}
+}
+
+// Scale returns color scaled by a scalar.
+func (c Color) Scale(n float64) Color {
+	return Color{Vec: c.Vec.Scale(n)}
+}
+
+// RayColor linearly blends white and blue depending on the height of the Y coordinate.
+func RayColor(r geometry.Ray) Color {
+	t := 0.5 * (r.Direction.Y() + 1.0)
+	white := NewColor(1.0, 1.0, 1.0).Scale(1 - t)
+	blue := NewColor(0.5, 0.7, 1.0).Scale(t)
+	return white.Plus(blue)
 }

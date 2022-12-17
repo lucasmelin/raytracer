@@ -7,5 +7,9 @@ import (
 )
 
 func main() {
-	display.Render(os.Stdout, 256, 256)
+	aspectRatio := 16.0 / 9.0
+	imageWidth := 400
+	imageHeight := int(float64(imageWidth) / aspectRatio)
+
+	display.Render(os.Stdout, imageWidth, imageHeight, aspectRatio)
 }
