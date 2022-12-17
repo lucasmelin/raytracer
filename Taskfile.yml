@@ -3,13 +3,18 @@ version: "3"
 tasks:
   run:
     cmds:
-      - go run main.go > image.ppm
+      - go run cmd/main.go > image.ppm
     generates:
       - image.ppm
   view:
+    deps: [run]
     cmds:
       - open -a Preview image.ppm
   pngify:
     deps: [run]
     cmds:
       - convert image.ppm image.png
+  clean:
+    cmds:
+      - touch image.ppm image.png
+      - rm image.ppm image.png
