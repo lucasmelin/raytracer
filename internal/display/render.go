@@ -62,7 +62,7 @@ func Render(out io.Writer, width int, height int, aspectRatio float64) {
 				cam.origin,
 				cam.lowerLeftCorner.Add((cam.horizontal.Scale(u)).Add(cam.vertical.Scale(v))).ToUnit(),
 			)
-			c := RayColor(r)
+			c := rayColor(r)
 			WriteColor(out, c)
 		}
 	}
@@ -71,4 +71,25 @@ func Render(out io.Writer, width int, height int, aspectRatio float64) {
 
 func toHue(value float64) int {
 	return int(255.99 * value)
+}
+
+// rayColor linearly blends white and blue depending on the height of the Y coordinate.
+func rayColor(r geometry.Ray) Color {
+	s := geometry.NewSphere(geometry.NewVec(0, 0, -1), 0.5)
+	if hitSphere(s.Center, s.Radius, r) {
+		return NewColor(1, 0, 0)
+	}
+	t := 0.5 * (r.Direction.Y() + 1.0)
+	white := NewColor(1.0, 1.0, 1.0).Scale(1 - t)
+	blue := NewColor(0.5, 0.7, 1.0).Scale(t)
+	return white.Plus(blue)
+}
+
+func hitSphere(center geometry.Vec, radius float64, r geometry.Ray) bool {
+	oc := r.Origin.Sub(center)
+	a := r.Direction.Dot(r.Direction.Vec)
+	b := 2.0 * oc.Dot(r.Direction.Vec)
+	c := oc.Dot(oc) - radius*radius
+	discriminant := b*b - 4*a*c
+	return discriminant > 0
 }
