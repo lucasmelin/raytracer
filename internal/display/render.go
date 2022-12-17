@@ -3,6 +3,7 @@ package display
 import (
 	"fmt"
 	"io"
+	"math"
 	"os"
 
 	"github.com/lucasmelin/raytracer/internal/geometry"
@@ -76,8 +77,9 @@ func toHue(value float64) int {
 // rayColor linearly blends white and blue depending on the height of the Y coordinate.
 func rayColor(r geometry.Ray) Color {
 	s := geometry.NewSphere(geometry.NewVec(0, 0, -1), 0.5)
-	if hitSphere(s.Center, s.Radius, r) {
-		return NewColor(1, 0, 0)
+	if t, ok := hitSphere(s, r); ok {
+		n := r.At(t).Sub(s.Center).ToUnit()
+		return NewColor(n.X()+1, n.Y()+1, n.Z()+1).Scale(0.5)
 	}
 	t := 0.5 * (r.Direction.Y() + 1.0)
 	white := NewColor(1.0, 1.0, 1.0).Scale(1 - t)
@@ -85,11 +87,15 @@ func rayColor(r geometry.Ray) Color {
 	return white.Plus(blue)
 }
 
-func hitSphere(center geometry.Vec, radius float64, r geometry.Ray) bool {
-	oc := r.Origin.Sub(center)
+func hitSphere(sphere geometry.Sphere, r geometry.Ray) (float64, bool) {
+	oc := r.Origin.Sub(sphere.Center)
 	a := r.Direction.Dot(r.Direction.Vec)
 	b := 2.0 * oc.Dot(r.Direction.Vec)
-	c := oc.Dot(oc) - radius*radius
+	c := oc.Dot(oc) - sphere.Radius*sphere.Radius
 	discriminant := b*b - 4*a*c
-	return discriminant > 0
+	if discriminant < 0 {
+		return -1.0, false
+	} else {
+		return (-b - math.Sqrt(discriminant)) / (2.0 * a), true
+	}
 }
