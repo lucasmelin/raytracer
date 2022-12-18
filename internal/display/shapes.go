@@ -14,12 +14,12 @@ type Sphere struct {
 }
 
 // NewSphere creates a new Sphere.
-func NewSphere(center geometry.Vec, radius float64, material Material) Sphere {
-	return Sphere{Center: center, Radius: radius, Material: material}
+func NewSphere(center geometry.Vec, radius float64, material Material) *Sphere {
+	return &Sphere{Center: center, Radius: radius, Material: material}
 }
 
 // Hit finds the first intersection between a ray and the sphere's surface.
-func (s Sphere) Hit(r geometry.Ray, tMin, tMax float64) (float64, Surfacer) {
+func (s *Sphere) Hit(r geometry.Ray, tMin, tMax float64) (float64, Surfacer) {
 	oc := r.Origin.Sub(s.Center)
 	a := r.Direction.Dot(r.Direction)
 	halfb := oc.Dot(r.Direction.Vec)
@@ -42,6 +42,6 @@ func (s Sphere) Hit(r geometry.Ray, tMin, tMax float64) (float64, Surfacer) {
 }
 
 // Surface returns the normal and material at point p on the Sphere.
-func (s Sphere) Surface(p geometry.Vec) (geometry.Unit, Material) {
+func (s *Sphere) Surface(p geometry.Vec) (geometry.Unit, Material) {
 	return p.Sub(s.Center).Scale(s.Radius).ToUnit(), s.Material
 }

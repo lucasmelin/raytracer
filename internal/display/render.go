@@ -83,10 +83,10 @@ func (w Window) Render(out io.Writer, h Hittable, samples int) {
 	fmt.Fprintln(out, header)
 
 	// Camera
-	from := geometry.NewVec(3, 3, 2)
-	at := geometry.NewVec(0, 0, -1)
-	focus := from.Sub(at).Len()
-	cam := newCamera(from, at, geometry.NewUnit(0, 1, 0), 20, float64(w.Width)/float64(w.Height), 2, focus)
+	from := geometry.NewVec(13, 2, 3)
+	at := geometry.NewVec(0, 0, 0)
+	focus := 10.0
+	cam := newCamera(from, at, geometry.NewUnit(0, 1, 0), 20, float64(w.Width)/float64(w.Height), 0.1, focus)
 
 	fmt.Fprintf(os.Stderr, "Rendering image %d X %d", w.Width, w.Height)
 

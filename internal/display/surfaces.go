@@ -8,12 +8,12 @@ type World struct {
 }
 
 // NewWorld created a new list of Hittables.
-func NewWorld(h ...Hittable) World {
-	return World{Hittables: h}
+func NewWorld(h ...Hittable) *World {
+	return &World{Hittables: h}
 }
 
 // Hit returns the first intersection between the Ray r and and of the Hittables in the World.
-func (w World) Hit(r geometry.Ray, tMin float64, tMax float64) (t float64, s Surfacer) {
+func (w *World) Hit(r geometry.Ray, tMin float64, tMax float64) (t float64, s Surfacer) {
 	closest := tMax
 	for _, h := range w.Hittables {
 		if ht, hs := h.Hit(r, tMin, closest); ht > 0 {
@@ -22,6 +22,12 @@ func (w World) Hit(r geometry.Ray, tMin float64, tMax float64) (t float64, s Sur
 		}
 	}
 	return t, s
+}
+
+// Add adds a Hittable to the World.
+func (w *World) Add(h ...Hittable) int {
+	w.Hittables = append(w.Hittables, h...)
+	return len(w.Hittables)
 }
 
 // Surfacer represents something that can return surface normals and materials.
