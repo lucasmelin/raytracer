@@ -31,7 +31,7 @@ type Surfacer interface {
 
 // Material represents a material that scatters light.
 type Material interface {
-	Scatter(in geometry.Ray, p geometry.Vec, n geometry.Unit) (geometry.Ray, Color)
+	Scatter(in geometry.Ray, p geometry.Vec, n geometry.Unit) (geometry.Ray, Color, bool)
 }
 
 // Hittable represents a surface that can be Hit by a Ray.

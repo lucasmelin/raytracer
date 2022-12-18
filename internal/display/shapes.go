@@ -21,7 +21,7 @@ func NewSphere(center geometry.Vec, radius float64, material Material) Sphere {
 // Hit finds the first intersection between a ray and the sphere's surface.
 func (s Sphere) Hit(r geometry.Ray, tMin, tMax float64) (float64, Surfacer) {
 	oc := r.Origin.Sub(s.Center)
-	a := r.Direction.Dot(r.Direction.Vec)
+	a := r.Direction.Dot(r.Direction)
 	halfb := oc.Dot(r.Direction.Vec)
 	c := oc.Dot(oc) - s.Radius*s.Radius
 	discriminant := halfb*halfb - a*c

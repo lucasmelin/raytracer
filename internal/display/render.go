@@ -118,9 +118,9 @@ func rayColor(r geometry.Ray, h Hittable, depth int) Color {
 		p := r.At(t)
 		n, m := s.Surface(p)
 
-		r2, attenuation := m.Scatter(r, p, n)
-		if attenuation.Zero() {
-			return attenuation
+		r2, attenuation, ok := m.Scatter(r, p, n)
+		if !ok {
+			return NewColor(0, 0, 0)
 		}
 		return rayColor(r2, h, depth-1).Mul(attenuation)
 	}

@@ -146,6 +146,16 @@ func (v Vec) Zero() bool {
 	return v.X() == 0 && v.Y() == 0 && v.Z() == 0
 }
 
+// Dot returns the dot product of two unit vectors.
+func (u Unit) Dot(u2 Unit) float64 {
+	return u.X()*u2.X() + u.Y()*u2.Y() + u.Z()*u2.Z()
+}
+
+// Reflect reflects this unit vector about a normal vector n.
+func (u Unit) Reflect(n Unit) Unit {
+	return Unit{Vec: u.Sub(n.Scale(2 * u.Dot(n)))}
+}
+
 // RandVecInSphere creates a random Vec within a unit sphere.
 func RandVecInSphere() Vec {
 	for {
