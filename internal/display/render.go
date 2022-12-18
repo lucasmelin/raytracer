@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/rand"
 	"os"
 
 	"github.com/lucasmelin/raytracer/internal/geometry"
 )
 
-const asciiColorPalette = "P3"
-const maxColor = 255
+const (
+	asciiColorPalette = "P3"
+	maxColor          = 255
+	aspectRatio       = 16.0 / 9.0
+)
 
 // Frame collects the results of the ray traces on a Width by Height grid.
 type Frame struct {
@@ -22,6 +26,7 @@ type Frame struct {
 type camera struct {
 	viewport
 	focalLength float64
+	aspectRatio float64
 }
 
 // viewport contains a set of image coordinates.
@@ -34,42 +39,53 @@ type viewport struct {
 	lowerLeftCorner geometry.Vec
 }
 
-func newCamera(aspectRatio float64, viewportWidth float64, viewportHeight float64) camera {
+func newCamera() camera {
+	viewportHeight := 2.0
+	viewportWidth := aspectRatio * viewportHeight
 	camera := camera{
 		viewport: viewport{
 			height:     viewportHeight,
-			width:      viewportWidth,
+			width:      aspectRatio * viewportHeight,
 			origin:     geometry.NewVec(0, 0, 0),
 			horizontal: geometry.NewVec(viewportWidth, 0, 0),
 			vertical:   geometry.NewVec(0, viewportHeight, 0),
 		},
 		focalLength: 1.0,
+		aspectRatio: aspectRatio,
 	}
 	camera.lowerLeftCorner = camera.origin.Sub(camera.horizontal.Scale(0.5)).Sub(camera.vertical.Scale(0.5)).Sub(geometry.NewVec(0, 0, camera.focalLength))
 	return camera
 }
 
-func (f Frame) Render(out io.Writer, aspectRatio float64, h geometry.Hittable) {
+// Ray returns a Ray passing through a given coordinate u, v.
+func (c camera) Ray(u float64, v float64) geometry.Ray {
+	r := geometry.NewRay(
+		c.origin,
+		c.lowerLeftCorner.Add((c.horizontal.Scale(u)).Add(c.vertical.Scale(v))).ToUnit(),
+	)
+	return r
+}
+
+func (f Frame) Render(out io.Writer, h geometry.Hittable, samples int) {
 	header := fmt.Sprintf("%s\n%d %d\n%d", asciiColorPalette, f.Width, f.Height, maxColor)
 	fmt.Fprintln(out, header)
 
 	// Camera
-	vh := 2.0
-	vw := aspectRatio * vh
-	cam := newCamera(aspectRatio, vw, vh)
+	cam := newCamera()
 
 	fmt.Fprintf(os.Stderr, "Rendering image %d X %d", f.Width, f.Height)
 
-	for j := f.Height - 1; j >= 0; j-- {
-		fmt.Fprintf(os.Stderr, "\nScanlines remaining: %d", j)
-		for i := 0; i < f.Width; i++ {
-			u := float64(i) / float64(f.Width-1)
-			v := float64(j) / float64(f.Height-1)
-			r := geometry.NewRay(
-				cam.origin,
-				cam.lowerLeftCorner.Add((cam.horizontal.Scale(u)).Add(cam.vertical.Scale(v))).ToUnit(),
-			)
-			c := rayColor(r, h)
+	for y := f.Height - 1; y >= 0; y-- {
+		fmt.Fprintf(os.Stderr, "\nScanlines remaining: %d", y)
+		for x := 0; x < f.Width; x++ {
+			c := NewColor(0, 0, 0)
+			for s := 0; s < samples; s++ {
+				u := (float64(x) + rand.Float64()) / float64(f.Width-1)
+				v := (float64(y) + rand.Float64()) / float64(f.Height-1)
+				r := cam.Ray(u, v)
+				c = c.Plus(rayColor(r, h))
+			}
+			c = c.Scale(1.0 / float64(samples))
 			WriteColor(out, c)
 		}
 	}
@@ -77,7 +93,17 @@ func (f Frame) Render(out io.Writer, aspectRatio float64, h geometry.Hittable) {
 }
 
 func toHue(value float64) int {
-	return int(255.99 * value)
+	return int(256 * clamp(value, 0.0, 0.999))
+}
+
+func clamp(x, min, max float64) float64 {
+	if x < min {
+		return min
+	}
+	if x > max {
+		return max
+	}
+	return x
 }
 
 // rayColor linearly blends white and blue depending on the height of the Y coordinate.
