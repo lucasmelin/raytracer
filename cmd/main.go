@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"os"
 
 	"github.com/lucasmelin/raytracer/internal/display"
@@ -12,20 +13,16 @@ func main() {
 	imageWidth := 400
 	imageHeight := int(float64(imageWidth) / aspectRatio)
 
-	frame := display.Frame{Width: imageWidth, Height: imageHeight}
+	window := display.NewWindow(imageWidth, imageHeight)
 
-	materialGround := display.NewLambertian(display.NewColor(0.8, 0.8, 0.0))
-	materialCenter := display.NewLambertian(display.NewColor(0.1, 0.2, 0.5))
-	materialLeft := display.NewDielectric(1.5)
-	materialRight := display.NewMetal(display.NewColor(0.8, 0.6, 0.2), 0)
+	materialLeft := display.NewLambertian(display.NewColor(0, 0, 1))
+	materialRight := display.NewLambertian(display.NewColor(1, 0, 0))
 
+	r := math.Cos(math.Pi / 4)
 	world := display.NewWorld(
-		display.NewSphere(geometry.NewVec(0, -100.5, -1), 100, materialGround),
-		display.NewSphere(geometry.NewVec(0, 0, -1), 0.5, materialCenter),
-		display.NewSphere(geometry.NewVec(-1, 0, -1), 0.5, materialLeft),
-		display.NewSphere(geometry.NewVec(-1, 0, -1), -0.4, materialLeft),
-		display.NewSphere(geometry.NewVec(1, 0, -1), 0.5, materialRight),
+		display.NewSphere(geometry.NewVec(-r, 0, -1), r, materialLeft),
+		display.NewSphere(geometry.NewVec(r, 0, -1), r, materialRight),
 	)
 	smoothness := 100
-	frame.Render(os.Stdout, world, smoothness)
+	window.Render(os.Stdout, world, smoothness)
 }

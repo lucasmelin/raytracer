@@ -18,44 +18,43 @@ const (
 	maxDepth          = 50
 )
 
-// Frame collects the results of the ray traces on a Width by Height grid.
-type Frame struct {
+// Window collects the results of the ray traces on a Width by Height grid.
+type Window struct {
 	Width  int
 	Height int
 }
 
-// camera contains a viewport and a focal length.
+// NewWindow creates a new Window given a width and height.
+func NewWindow(width int, height int) Window {
+	return Window{Width: width, Height: height}
+}
+
+// camera contains a set of image coordinates.
 type camera struct {
-	viewport
-	focalLength float64
-	aspectRatio float64
+	height     float64
+	width      float64
+	origin     geometry.Vec
+	horizontal geometry.Vec
+	vertical   geometry.Vec
+	lowerLeft  geometry.Vec
 }
 
-// viewport contains a set of image coordinates.
-type viewport struct {
-	height          float64
-	width           float64
-	origin          geometry.Vec
-	horizontal      geometry.Vec
-	vertical        geometry.Vec
-	lowerLeftCorner geometry.Vec
-}
+func newCamera(verticalFov float64, aspectRatio float64) camera {
+	theta := verticalFov * math.Pi / 180
+	halfH := math.Tan(theta / 2)
+	halfW := aspectRatio * halfH
 
-func newCamera() camera {
-	viewportHeight := 2.0
-	viewportWidth := aspectRatio * viewportHeight
+	viewportHeight := 2 * halfH
+	viewportWidth := 2 * halfW
 	camera := camera{
-		viewport: viewport{
-			height:     viewportHeight,
-			width:      aspectRatio * viewportHeight,
-			origin:     geometry.NewVec(0, 0, 0),
-			horizontal: geometry.NewVec(viewportWidth, 0, 0),
-			vertical:   geometry.NewVec(0, viewportHeight, 0),
-		},
-		focalLength: 1.0,
-		aspectRatio: aspectRatio,
+		height:     viewportHeight,
+		width:      aspectRatio * viewportHeight,
+		origin:     geometry.NewVec(0, 0, 0),
+		horizontal: geometry.NewVec(viewportWidth, 0, 0),
+		vertical:   geometry.NewVec(0, viewportHeight, 0),
+		lowerLeft:  geometry.NewVec(-halfW, -halfH, -1),
 	}
-	camera.lowerLeftCorner = camera.origin.Sub(camera.horizontal.Scale(0.5)).Sub(camera.vertical.Scale(0.5)).Sub(geometry.NewVec(0, 0, camera.focalLength))
+
 	return camera
 }
 
@@ -63,27 +62,27 @@ func newCamera() camera {
 func (c camera) Ray(u float64, v float64) geometry.Ray {
 	r := geometry.NewRay(
 		c.origin,
-		c.lowerLeftCorner.Add((c.horizontal.Scale(u)).Add(c.vertical.Scale(v))).ToUnit(),
+		c.lowerLeft.Add((c.horizontal.Scale(u)).Add(c.vertical.Scale(v))).ToUnit(),
 	)
 	return r
 }
 
-func (f Frame) Render(out io.Writer, h Hittable, samples int) {
-	header := fmt.Sprintf("%s\n%d %d\n%d", asciiColorPalette, f.Width, f.Height, maxColor)
+func (w Window) Render(out io.Writer, h Hittable, samples int) {
+	header := fmt.Sprintf("%s\n%d %d\n%d", asciiColorPalette, w.Width, w.Height, maxColor)
 	fmt.Fprintln(out, header)
 
 	// Camera
-	cam := newCamera()
+	cam := newCamera(90, float64(w.Width)/float64(w.Height))
 
-	fmt.Fprintf(os.Stderr, "Rendering image %d X %d", f.Width, f.Height)
+	fmt.Fprintf(os.Stderr, "Rendering image %d X %d", w.Width, w.Height)
 
-	for y := f.Height - 1; y >= 0; y-- {
+	for y := w.Height - 1; y >= 0; y-- {
 		fmt.Fprintf(os.Stderr, "\nScanlines remaining: %d", y)
-		for x := 0; x < f.Width; x++ {
+		for x := 0; x < w.Width; x++ {
 			c := NewColor(0, 0, 0)
 			for s := 0; s < samples; s++ {
-				u := (float64(x) + rand.Float64()) / float64(f.Width-1)
-				v := (float64(y) + rand.Float64()) / float64(f.Height-1)
+				u := (float64(x) + rand.Float64()) / float64(w.Width-1)
+				v := (float64(y) + rand.Float64()) / float64(w.Height-1)
 				r := cam.Ray(u, v)
 				c = c.Plus(rayColor(r, h, maxDepth))
 			}
