@@ -156,6 +156,11 @@ func (u Unit) Reflect(n Unit) Unit {
 	return Unit{Vec: u.Sub(n.Scale(2 * u.Dot(n)))}
 }
 
+// Inv returns the inverse of this unit vector as a new vector.
+func (u Unit) Inv() Unit {
+	return Unit{Vec: u.Vec.Inv()}
+}
+
 // RandVecInSphere creates a random Vec within a unit sphere.
 func RandVecInSphere() Vec {
 	for {

@@ -14,9 +14,9 @@ func main() {
 
 	frame := display.Frame{Width: imageWidth, Height: imageHeight}
 
-	materialGround := display.Lambertian{Albedo: display.NewColor(0.8, 0.8, 0.0)}
-	materialCenter := display.Lambertian{Albedo: display.NewColor(0.7, 0.3, 0.3)}
-	materialLeft := display.NewMetal(display.NewColor(0.8, 0.8, 0.8), 0.3)
+	materialGround := display.NewLambertian(display.NewColor(0.8, 0.8, 0.0))
+	materialCenter := display.NewDielectric(1.5)
+	materialLeft := display.NewDielectric(1.5)
 	materialRight := display.NewMetal(display.NewColor(0.8, 0.6, 0.2), 1)
 
 	world := display.NewWorld(
