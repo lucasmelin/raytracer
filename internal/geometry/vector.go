@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/rand"
 )
 
 // Unit represents a unit vector of length 1.
@@ -138,4 +139,14 @@ func (v Vec) Scale(n float64) Vec {
 	newY := v.Y() * n
 	newZ := v.Z() * n
 	return NewVec(newX, newY, newZ)
+}
+
+// RandVecInSphere creates a random Vec within a unit sphere.
+func RandVecInSphere() Vec {
+	for {
+		v := NewVec(rand.Float64(), rand.Float64(), rand.Float64()).Scale(2).Sub(NewVec(1, 1, 1))
+		if v.LenSquared() < 1 {
+			return v
+		}
+	}
 }

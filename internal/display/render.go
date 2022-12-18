@@ -14,6 +14,7 @@ const (
 	asciiColorPalette = "P3"
 	maxColor          = 255
 	aspectRatio       = 16.0 / 9.0
+	bias              = 0.001
 )
 
 // Frame collects the results of the ray traces on a Width by Height grid.
@@ -85,7 +86,7 @@ func (f Frame) Render(out io.Writer, h geometry.Hittable, samples int) {
 				r := cam.Ray(u, v)
 				c = c.Plus(rayColor(r, h))
 			}
-			c = c.Scale(1.0 / float64(samples))
+			c = c.Scale(1.0 / float64(samples)).Gamma(2)
 			WriteColor(out, c)
 		}
 	}
@@ -107,9 +108,11 @@ func clamp(x, min, max float64) float64 {
 }
 
 // rayColor linearly blends white and blue depending on the height of the Y coordinate.
-func rayColor(r geometry.Ray, s geometry.Hittable) Color {
-	if t, _, n := s.Hit(r, 0, math.MaxFloat64); t > 0 {
-		return NewColor(n.X()+1, n.Y()+1, n.Z()+1).Scale(0.5)
+func rayColor(r geometry.Ray, h geometry.Hittable) Color {
+	if t, p, n := h.Hit(r, bias, math.MaxFloat64); t > 0 {
+		target := p.Add(n.Vec).Add(geometry.RandVecInSphere())
+		r2 := geometry.NewRay(p, target.Sub(p).ToUnit())
+		return rayColor(r2, h).Scale(0.5)
 	}
 	t := 0.5 * (r.Direction.Y() + 1.0)
 	white := NewColor(1.0, 1.0, 1.0).Scale(1 - t)

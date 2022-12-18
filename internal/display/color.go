@@ -3,6 +3,7 @@ package display
 import (
 	"fmt"
 	"io"
+	"math"
 
 	"github.com/lucasmelin/raytracer/internal/geometry"
 )
@@ -50,4 +51,10 @@ func (c Color) Plus(c2 Color) Color {
 // Scale returns color scaled by a scalar.
 func (c Color) Scale(n float64) Color {
 	return Color{Vec: c.Vec.Scale(n)}
+}
+
+// Gamma raises each color channel to 1/n.
+func (c Color) Gamma(n float64) Color {
+	k := 1 / n
+	return NewColor(math.Pow(c.Red(), k), math.Pow(c.Green(), k), math.Pow(c.Blue(), k))
 }
