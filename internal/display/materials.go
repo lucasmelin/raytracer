@@ -2,6 +2,7 @@ package display
 
 import (
 	"math"
+	"math/rand"
 
 	"github.com/lucasmelin/raytracer/internal/geometry"
 )
@@ -17,9 +18,8 @@ func NewLambertian(albedo Color) Lambertian {
 }
 
 // Scatter scatters light rays in a Lambertian pattern.
-func (l Lambertian) Scatter(in geometry.Ray, p geometry.Vec, n geometry.Unit) (geometry.Ray, Color, bool) {
-	target := p.Add(n.Vec).Add(geometry.RandVecInSphere())
-	out := geometry.NewRay(p, target.Sub(p).ToUnit())
+func (l Lambertian) Scatter(in geometry.Unit, n geometry.Unit) (geometry.Unit, Color, bool) {
+	out := n.Add(geometry.RandVecInSphere()).ToUnit()
 	return out, l.Albedo, true
 }
 
@@ -35,11 +35,10 @@ func NewMetal(albedo Color, roughness float64) Metal {
 }
 
 // Scatter reflects light rays.
-func (m Metal) Scatter(in geometry.Ray, p geometry.Vec, n geometry.Unit) (geometry.Ray, Color, bool) {
-	r := in.Direction.Reflect(n)
-	dir := r.Add(geometry.RandVecInSphere().Scale(m.Rough)).ToUnit()
-	out := geometry.NewRay(p, dir)
-	ok := out.Direction.Dot(n) > 0
+func (m Metal) Scatter(in geometry.Unit, n geometry.Unit) (geometry.Unit, Color, bool) {
+	r := in.Reflect(n)
+	out := r.Add(geometry.RandVecInSphere().Scale(m.Rough)).ToUnit()
+	ok := out.Dot(n) > 0
 	return out, m.Albedo, ok
 }
 
@@ -54,19 +53,23 @@ func NewDielectric(refIndex float64) Dielectric {
 }
 
 // Scatter reflects or refracts light rays based on the index of refraction.
-func (d Dielectric) Scatter(in geometry.Ray, p geometry.Vec, n geometry.Unit) (geometry.Ray, Color, bool) {
+func (d Dielectric) Scatter(in geometry.Unit, n geometry.Unit) (geometry.Unit, Color, bool) {
 	outNormal := n
 	ratio := 1 / d.RefIndex
-	if in.Direction.Dot(n) > 0 {
+	cosTheta := -in.Dot(n) / in.Len()
+
+	if in.Dot(n) > 0 {
 		outNormal = n.Inv()
 		ratio = d.RefIndex
+		cosTheta = d.RefIndex * in.Dot(n) / in.Len()
 	}
 
-	r, refracted := refract(in.Direction, outNormal, ratio)
-	if !refracted {
-		r = in.Direction.Reflect(n)
+	out, refracted := refract(in, outNormal, ratio)
+
+	if !refracted || schlick(cosTheta, ratio) > rand.Float64() {
+		out = in.Reflect(n)
 	}
-	return geometry.NewRay(p, r), NewColor(1, 1, 1), true
+	return out, NewColor(1, 1, 1), true
 }
 
 func refract(u geometry.Unit, n geometry.Unit, ratio float64) (geometry.Unit, bool) {
@@ -77,4 +80,10 @@ func refract(u geometry.Unit, n geometry.Unit, ratio float64) (geometry.Unit, bo
 	}
 	u2 := (u.Sub(n.Scale(dt)).Scale(ratio)).Sub(n.Scale(math.Sqrt(disc))).ToUnit()
 	return u2, true
+}
+
+func schlick(cos float64, refIndex float64) float64 {
+	r := (1 - refIndex) / (1 + refIndex)
+	r = r * r
+	return r + (1-r)*math.Pow((1-cos), 5)
 }

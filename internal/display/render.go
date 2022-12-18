@@ -118,10 +118,11 @@ func rayColor(r geometry.Ray, h Hittable, depth int) Color {
 		p := r.At(t)
 		n, m := s.Surface(p)
 
-		r2, attenuation, ok := m.Scatter(r, p, n)
+		scattered, attenuation, ok := m.Scatter(r.Direction, n)
 		if !ok {
 			return NewColor(0, 0, 0)
 		}
+		r2 := geometry.NewRay(p, scattered)
 		return rayColor(r2, h, depth-1).Mul(attenuation)
 	}
 	t := 0.5 * (r.Direction.Y() + 1.0)

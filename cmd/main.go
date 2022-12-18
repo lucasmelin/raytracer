@@ -15,14 +15,15 @@ func main() {
 	frame := display.Frame{Width: imageWidth, Height: imageHeight}
 
 	materialGround := display.NewLambertian(display.NewColor(0.8, 0.8, 0.0))
-	materialCenter := display.NewDielectric(1.5)
+	materialCenter := display.NewLambertian(display.NewColor(0.1, 0.2, 0.5))
 	materialLeft := display.NewDielectric(1.5)
-	materialRight := display.NewMetal(display.NewColor(0.8, 0.6, 0.2), 1)
+	materialRight := display.NewMetal(display.NewColor(0.8, 0.6, 0.2), 0)
 
 	world := display.NewWorld(
 		display.NewSphere(geometry.NewVec(0, -100.5, -1), 100, materialGround),
 		display.NewSphere(geometry.NewVec(0, 0, -1), 0.5, materialCenter),
 		display.NewSphere(geometry.NewVec(-1, 0, -1), 0.5, materialLeft),
+		display.NewSphere(geometry.NewVec(-1, 0, -1), -0.4, materialLeft),
 		display.NewSphere(geometry.NewVec(1, 0, -1), 0.5, materialRight),
 	)
 	smoothness := 100
