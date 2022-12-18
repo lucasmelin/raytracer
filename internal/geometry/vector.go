@@ -170,3 +170,14 @@ func RandVecInSphere() Vec {
 		}
 	}
 }
+
+// RandVecInDisk creates a random Vec within a unit disk.
+func RandVecInDisk() Vec {
+	xy := NewVec(1, 1, 0)
+	for {
+		v := NewVec(rand.Float64(), rand.Float64(), 0).Scale(2).Sub(xy)
+		if v.Dot(v) < 1 {
+			return v
+		}
+	}
+}

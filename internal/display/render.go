@@ -31,45 +31,51 @@ func NewWindow(width int, height int) Window {
 
 // camera contains a set of image coordinates.
 type camera struct {
-	height     float64
-	width      float64
 	origin     geometry.Vec
 	horizontal geometry.Vec
 	vertical   geometry.Vec
 	lowerLeft  geometry.Vec
+	u          geometry.Unit
+	v          geometry.Unit
+	w          geometry.Unit
+	lensRadius float64
 }
 
-func newCamera(lookFrom geometry.Vec, lookAt geometry.Vec, verticalUp geometry.Unit, verticalFov float64, aspectRatio float64) camera {
+func newCamera(lookFrom geometry.Vec, lookAt geometry.Vec, verticalUp geometry.Unit, verticalFov float64, aspectRatio float64, aperture float64, focus float64) camera {
 	theta := verticalFov * math.Pi / 180
 	halfH := math.Tan(theta / 2)
 	halfW := aspectRatio * halfH
 
-	w := lookFrom.Sub(lookAt).ToUnit()
-	u := verticalUp.Cross(w.Vec).ToUnit()
-	v := w.Cross(u.Vec).ToUnit()
+	camera := camera{}
 
-	viewportHeight := 2 * halfH
-	viewportWidth := 2 * halfW
-	camera := camera{
-		height:     viewportHeight,
-		width:      aspectRatio * viewportHeight,
-		origin:     lookFrom,
-		horizontal: u.Scale(viewportWidth),
-		vertical:   v.Scale(viewportHeight),
-	}
+	camera.w = lookFrom.Sub(lookAt).ToUnit()
+	camera.u = verticalUp.Cross(camera.w.Vec).ToUnit()
+	camera.v = camera.w.Cross(camera.u.Vec).ToUnit()
 
-	camera.lowerLeft = camera.origin.Sub(u.Scale(halfW)).Sub(v.Scale(halfH)).Sub(w.Vec)
+	width := camera.u.Scale(halfW * focus)
+	height := camera.v.Scale(halfH * focus)
+	dist := camera.w.Scale(focus)
+
+	camera.lensRadius = aperture / 2
+
+	camera.origin = lookFrom
+	camera.lowerLeft = camera.origin.Sub(width).Sub(height).Sub(dist)
+	camera.horizontal = width.Scale(2)
+	camera.vertical = height.Scale(2)
 
 	return camera
 }
 
-// Ray returns a Ray passing through a given coordinate u, v.
-func (c camera) Ray(u float64, v float64) geometry.Ray {
-	r := geometry.NewRay(
-		c.origin,
-		c.lowerLeft.Add((c.horizontal.Scale(u)).Add(c.vertical.Scale(v))).Sub(c.origin).ToUnit(),
+// Ray returns a Ray passing through a given coordinate s, t.
+func (c camera) Ray(s float64, t float64) geometry.Ray {
+	rd := geometry.RandVecInDisk().Scale(c.lensRadius)
+	offset := c.u.Scale(rd.X()).Add(c.v.Scale(rd.Y()))
+	source := c.origin.Add(offset)
+	dest := c.lowerLeft.Add(c.horizontal.Scale(s).Add(c.vertical.Scale(t)))
+	return geometry.NewRay(
+		source,
+		dest.Sub(source).ToUnit(),
 	)
-	return r
 }
 
 func (w Window) Render(out io.Writer, h Hittable, samples int) {
@@ -77,7 +83,10 @@ func (w Window) Render(out io.Writer, h Hittable, samples int) {
 	fmt.Fprintln(out, header)
 
 	// Camera
-	cam := newCamera(geometry.NewVec(-2, 2, 1), geometry.NewVec(0, 0, -1), geometry.NewUnit(0, 1, 0), 20, float64(w.Width)/float64(w.Height))
+	from := geometry.NewVec(3, 3, 2)
+	at := geometry.NewVec(0, 0, -1)
+	focus := from.Sub(at).Len()
+	cam := newCamera(from, at, geometry.NewUnit(0, 1, 0), 20, float64(w.Width)/float64(w.Height), 2, focus)
 
 	fmt.Fprintf(os.Stderr, "Rendering image %d X %d", w.Width, w.Height)
 
