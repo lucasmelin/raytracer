@@ -39,21 +39,26 @@ type camera struct {
 	lowerLeft  geometry.Vec
 }
 
-func newCamera(verticalFov float64, aspectRatio float64) camera {
+func newCamera(lookFrom geometry.Vec, lookAt geometry.Vec, verticalUp geometry.Unit, verticalFov float64, aspectRatio float64) camera {
 	theta := verticalFov * math.Pi / 180
 	halfH := math.Tan(theta / 2)
 	halfW := aspectRatio * halfH
+
+	w := lookFrom.Sub(lookAt).ToUnit()
+	u := verticalUp.Cross(w.Vec).ToUnit()
+	v := w.Cross(u.Vec).ToUnit()
 
 	viewportHeight := 2 * halfH
 	viewportWidth := 2 * halfW
 	camera := camera{
 		height:     viewportHeight,
 		width:      aspectRatio * viewportHeight,
-		origin:     geometry.NewVec(0, 0, 0),
-		horizontal: geometry.NewVec(viewportWidth, 0, 0),
-		vertical:   geometry.NewVec(0, viewportHeight, 0),
-		lowerLeft:  geometry.NewVec(-halfW, -halfH, -1),
+		origin:     lookFrom,
+		horizontal: u.Scale(viewportWidth),
+		vertical:   v.Scale(viewportHeight),
 	}
+
+	camera.lowerLeft = camera.origin.Sub(u.Scale(halfW)).Sub(v.Scale(halfH)).Sub(w.Vec)
 
 	return camera
 }
@@ -62,7 +67,7 @@ func newCamera(verticalFov float64, aspectRatio float64) camera {
 func (c camera) Ray(u float64, v float64) geometry.Ray {
 	r := geometry.NewRay(
 		c.origin,
-		c.lowerLeft.Add((c.horizontal.Scale(u)).Add(c.vertical.Scale(v))).ToUnit(),
+		c.lowerLeft.Add((c.horizontal.Scale(u)).Add(c.vertical.Scale(v))).Sub(c.origin).ToUnit(),
 	)
 	return r
 }
@@ -72,7 +77,7 @@ func (w Window) Render(out io.Writer, h Hittable, samples int) {
 	fmt.Fprintln(out, header)
 
 	// Camera
-	cam := newCamera(90, float64(w.Width)/float64(w.Height))
+	cam := newCamera(geometry.NewVec(-2, 2, 1), geometry.NewVec(0, 0, -1), geometry.NewUnit(0, 1, 0), 20, float64(w.Width)/float64(w.Height))
 
 	fmt.Fprintf(os.Stderr, "Rendering image %d X %d", w.Width, w.Height)
 
