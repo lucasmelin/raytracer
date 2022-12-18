@@ -58,3 +58,8 @@ func (c Color) Gamma(n float64) Color {
 	k := 1 / n
 	return NewColor(math.Pow(c.Red(), k), math.Pow(c.Green(), k), math.Pow(c.Blue(), k))
 }
+
+// Mul returns the multiplication of two colors.
+func (c Color) Mul(c2 Color) Color {
+	return Color{Vec: c.Vec.Mul(c2.Vec)}
+}

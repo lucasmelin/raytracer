@@ -141,6 +141,11 @@ func (v Vec) Scale(n float64) Vec {
 	return NewVec(newX, newY, newZ)
 }
 
+// Zero returns whether this is a zero vector.
+func (v Vec) Zero() bool {
+	return v.X() == 0 && v.Y() == 0 && v.Z() == 0
+}
+
 // RandVecInSphere creates a random Vec within a unit sphere.
 func RandVecInSphere() Vec {
 	for {

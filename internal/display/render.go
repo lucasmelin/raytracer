@@ -15,6 +15,7 @@ const (
 	maxColor          = 255
 	aspectRatio       = 16.0 / 9.0
 	bias              = 0.001
+	maxDepth          = 50
 )
 
 // Frame collects the results of the ray traces on a Width by Height grid.
@@ -67,7 +68,7 @@ func (c camera) Ray(u float64, v float64) geometry.Ray {
 	return r
 }
 
-func (f Frame) Render(out io.Writer, h geometry.Hittable, samples int) {
+func (f Frame) Render(out io.Writer, h Hittable, samples int) {
 	header := fmt.Sprintf("%s\n%d %d\n%d", asciiColorPalette, f.Width, f.Height, maxColor)
 	fmt.Fprintln(out, header)
 
@@ -84,7 +85,7 @@ func (f Frame) Render(out io.Writer, h geometry.Hittable, samples int) {
 				u := (float64(x) + rand.Float64()) / float64(f.Width-1)
 				v := (float64(y) + rand.Float64()) / float64(f.Height-1)
 				r := cam.Ray(u, v)
-				c = c.Plus(rayColor(r, h))
+				c = c.Plus(rayColor(r, h, maxDepth))
 			}
 			c = c.Scale(1.0 / float64(samples)).Gamma(2)
 			WriteColor(out, c)
@@ -108,11 +109,20 @@ func clamp(x, min, max float64) float64 {
 }
 
 // rayColor linearly blends white and blue depending on the height of the Y coordinate.
-func rayColor(r geometry.Ray, h geometry.Hittable) Color {
-	if t, p, n := h.Hit(r, bias, math.MaxFloat64); t > 0 {
-		target := p.Add(n.Vec).Add(geometry.RandVecInSphere())
-		r2 := geometry.NewRay(p, target.Sub(p).ToUnit())
-		return rayColor(r2, h).Scale(0.5)
+func rayColor(r geometry.Ray, h Hittable, depth int) Color {
+	// If we've exceeded the ray bounce limit, no more light is gathered.
+	if depth <= 0 {
+		return NewColor(0, 0, 0)
+	}
+	if t, s := h.Hit(r, bias, math.MaxFloat64); t > 0 {
+		p := r.At(t)
+		n, m := s.Surface(p)
+
+		r2, attenuation := m.Scatter(r, p, n)
+		if attenuation.Zero() {
+			return attenuation
+		}
+		return rayColor(r2, h, depth-1).Mul(attenuation)
 	}
 	t := 0.5 * (r.Direction.Y() + 1.0)
 	white := NewColor(1.0, 1.0, 1.0).Scale(1 - t)
