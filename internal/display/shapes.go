@@ -55,11 +55,14 @@ func (s Sphere) Hit(r *geometry.Ray, tMin float64, tMax float64) (bool, *HitReco
 	t := (-halfb - sqrt) / a
 	if t > tMin && t < tMax {
 		hitPoint := r.At(t)
+		u, v := s.UV(hitPoint, t)
 		hr := HitRecord{
 			t:        t,
 			p:        hitPoint,
 			normal:   hitPoint.Sub(s.Center).Scale(1 / s.Radius).ToUnit(),
 			Material: s.Material,
+			u:        u,
+			v:        v,
 		}
 		return true, &hr
 	}
@@ -67,11 +70,14 @@ func (s Sphere) Hit(r *geometry.Ray, tMin float64, tMax float64) (bool, *HitReco
 	t = (-halfb + sqrt) / a
 	if t > tMin && t < tMax {
 		hitPoint := r.At(t)
+		u, v := s.UV(hitPoint, t)
 		hr := HitRecord{
 			t:        t,
 			p:        hitPoint,
 			normal:   hitPoint.Sub(s.Center).Scale(1 / s.Radius).ToUnit(),
 			Material: s.Material,
+			u:        u,
+			v:        v,
 		}
 		return true, &hr
 	}
@@ -93,11 +99,14 @@ func (s MovingSphere) Hit(r *geometry.Ray, dMin float64, dMax float64) (bool, *H
 	d := (-b - sqrt) / a
 	if d > dMin && d < dMax {
 		hitPoint := r.At(d)
+		u, v := s.UV(hitPoint, d)
 		hr := HitRecord{
 			t:        d,
 			p:        hitPoint,
 			normal:   hitPoint.Sub(s.Center(r.Time)).Scale(1 / s.Radius).ToUnit(),
 			Material: s.Material,
+			u:        u,
+			v:        v,
 		}
 		return true, &hr
 	}
@@ -105,11 +114,14 @@ func (s MovingSphere) Hit(r *geometry.Ray, dMin float64, dMax float64) (bool, *H
 	d = (-b + sqrt) / a
 	if d > dMin && d < dMax {
 		hitPoint := r.At(d)
+		u, v := s.UV(hitPoint, d)
 		hr := HitRecord{
 			t:        d,
 			p:        hitPoint,
 			normal:   hitPoint.Sub(s.Center(r.Time)).Scale(1 / s.Radius).ToUnit(),
 			Material: s.Material,
+			u:        u,
+			v:        v,
 		}
 		return true, &hr
 	}
@@ -144,4 +156,22 @@ func (s *MovingSphere) Box(t0 float64, t1 float64) *AABB {
 		s.Center(t1).Add(geometry.NewVec(s.Radius, s.Radius, s.Radius)),
 	)
 	return box0.Add(box1)
+}
+
+func (s *Sphere) UV(p geometry.Vec, t float64) (float64, float64) {
+	p2 := p.Sub(s.Center).Scale(1 / s.Radius)
+	phi := math.Atan2(p2.Z, p2.X)
+	theta := math.Asin(p2.Y)
+	u := 1 - (phi+math.Pi)/(2*math.Pi)
+	v := (theta + math.Pi/2) / math.Pi
+	return u, v
+}
+
+func (s *MovingSphere) UV(p geometry.Vec, t float64) (float64, float64) {
+	p2 := p.Sub(s.Center(t)).Scale(1 / s.Radius)
+	phi := math.Atan2(p2.Z, p2.X)
+	theta := math.Asin(p2.Y)
+	u := 1 - (phi+math.Pi)/(2*math.Pi)
+	v := (theta + math.Pi/2) / math.Pi
+	return u, v
 }

@@ -76,6 +76,31 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 	}
 }
 
+func jupiter(width int, height int) (Camera, *display.Sphere) {
+	f, err := os.Open("assets/jupiter.jpeg")
+	if err != nil {
+		panic(err)
+	}
+	t, err := display.NewImage(f)
+	if err != nil {
+		panic(err)
+	}
+	lookAt := geometry.Vec{}
+	lookFrom := geometry.NewVec(13, 2, 3)
+	aperture := 0.1
+	distToFocus := 10.0
+	camera := NewCamera(
+		lookFrom,
+		lookAt,
+		geometry.NewVec(0, 1.0, 0),
+		20,
+		float64(width)/float64(height),
+		aperture,
+		distToFocus,
+	)
+	return camera, display.NewSphere(geometry.NewVec(0, 0, 0), 2, display.NewLambertian(t))
+}
+
 func buildTwoPerlinSpheresWorld(width, height int) (Camera, *display.BVH) {
 	world := display.List{}
 	rnd := rand.New(rand.NewSource(rand.Int63()))
@@ -307,7 +332,7 @@ func main() {
 		panic(newErr)
 	}
 
-	camera, bvh := buildTwoPerlinSpheresWorld(options.Width, options.Height)
+	camera, bvh := jupiter(options.Width, options.Height)
 
 	scene := &Scene{
 		width:        options.Width,

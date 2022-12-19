@@ -24,7 +24,7 @@ func NewLambertian(albedo Texture) Lambertian {
 // Scatter scatters light rays in a Lambertian pattern.
 func (l Lambertian) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
 	out := rec.normal.Add(geometry.RandVecInSphere(r.Rnd)).ToUnit()
-	attenuation := l.Albedo.At(0, 0, rec.p)
+	attenuation := l.Albedo.At(rec.u, rec.v, rec.p)
 	return true, &attenuation, geometry.NewRay(rec.p, out.ToUnit(), r.Time, r.Rnd)
 }
 

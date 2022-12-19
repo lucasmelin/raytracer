@@ -67,6 +67,8 @@ type HitRecord struct {
 	p        geometry.Vec  // which point when hit
 	normal   geometry.Unit // normal at that point
 	Material Material      // the material associated to this record
+	u        float64       // surface coordinate
+	v        float64       //surface coordinate
 }
 
 func NewBVH(depth int, time0 float64, time1 float64, h ...HitBoxer) *BVH {

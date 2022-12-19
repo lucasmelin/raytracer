@@ -1,13 +1,23 @@
 package display
 
 import (
+	"image"
+	"io"
 	"math"
+
+	_ "image/jpeg"
 
 	"github.com/lucasmelin/raytracer/internal/geometry"
 )
 
 type Texture interface {
 	At(u float64, v float64, p geometry.Vec) Color
+}
+
+type Image struct {
+	X    int
+	Y    int
+	Data image.Image
 }
 
 type Perlin struct {
@@ -105,4 +115,40 @@ func (per Perlin) turbulence(p geometry.Vec, depth int) float64 {
 		p2 = p2.Scale(2)
 	}
 	return math.Abs(sum)
+}
+
+func NewImage(rc io.ReadCloser) (*Image, error) {
+	defer rc.Close()
+	im, _, err := image.Decode(rc)
+	if err != nil {
+		return nil, err
+	}
+	bounds := im.Bounds()
+	i := Image{
+		X:    bounds.Max.X,
+		Y:    bounds.Max.Y,
+		Data: im,
+	}
+	return &i, nil
+}
+
+func (i *Image) At(u float64, v float64, p geometry.Vec) Color {
+	x := int(u * float64(i.X))
+	y := int((1 - v) * float64(i.Y))
+	if x < 0 {
+		x = 0
+	}
+	if y < 0 {
+		y = 0
+	}
+	if x > i.X-1 {
+		x = i.X - 1
+	}
+	if y > i.Y-1 {
+		y = i.Y - 1
+	}
+	c := i.Data.At(x, y)
+	r, g, b, _ := c.RGBA()
+	divisor := float64(65535)
+	return NewColor(float64(r)/divisor, float64(g)/divisor, float64(b)/divisor)
 }
