@@ -13,5 +13,6 @@ func NewNoise(rnd geometry.Rnd, scale float64) Noise {
 }
 
 func (n Noise) At(u float64, v float64, p geometry.Vec) Color {
-	return NewColor(1, 1, 1).Scale(n.per.GenerateTrilinear(p.Scale(n.Scale)))
+	scaleFactor := n.per.turbulence(p.Scale(n.Scale), 7)
+	return NewColor(1, 1, 1).Scale(scaleFactor)
 }

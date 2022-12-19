@@ -11,28 +11,21 @@ type Texture interface {
 }
 
 type Perlin struct {
-	Rnd      geometry.Rnd
-	rndFloat []float64
-	permX    []int
-	permY    []int
-	permZ    []int
+	Rnd     geometry.Rnd
+	rndUnit []geometry.Unit
+	permX   []int
+	permY   []int
+	permZ   []int
 }
 
 func NewPerlin(rnd geometry.Rnd) Perlin {
 	return Perlin{
-		Rnd:      rnd,
-		rndFloat: perlinGen(rnd),
-		permX:    perlinGenPerm(rnd),
-		permY:    perlinGenPerm(rnd),
-		permZ:    perlinGenPerm(rnd),
+		Rnd:     rnd,
+		rndUnit: perlinGen(rnd),
+		permX:   perlinGenPerm(rnd),
+		permY:   perlinGenPerm(rnd),
+		permZ:   perlinGenPerm(rnd),
 	}
-}
-
-func (per Perlin) Generate(p geometry.Vec) float64 {
-	i := int(4*p.X) & 255
-	j := int(4*p.Y) & 255
-	k := int(4*p.Z) & 255
-	return per.rndFloat[per.permX[i]^per.permY[j]^per.permZ[k]]
 }
 
 func (per Perlin) GenerateTrilinear(p geometry.Vec) float64 {
@@ -40,15 +33,10 @@ func (per Perlin) GenerateTrilinear(p geometry.Vec) float64 {
 	v := p.Y - math.Floor(p.Y)
 	w := p.Z - math.Floor(p.Z)
 
-	// Hermitian smoothing.
-	u = u * u * (3 - 2*u)
-	v = v * v * (3 - 2*v)
-	w = w * w * (3 - 2*w)
-
 	i := int(math.Floor(p.X))
 	j := int(math.Floor(p.Y))
 	k := int(math.Floor(p.Z))
-	c := make([]float64, 8)
+	c := make([]geometry.Unit, 8)
 
 	for di := 0; di < 2; di++ {
 		for dj := 0; dj < 2; dj++ {
@@ -56,32 +44,36 @@ func (per Perlin) GenerateTrilinear(p geometry.Vec) float64 {
 				x := per.permX[(i+di)&255]
 				y := per.permX[(j+dj)&255]
 				z := per.permX[(k+dk)&255]
-				c[4*di+2*dj+dk] = per.rndFloat[x^y^z]
+				c[4*di+2*dj+dk] = per.rndUnit[x^y^z]
 			}
 		}
 	}
-	return trilinear(c, u, v, w)
+	return interp(c, u, v, w)
 }
 
-func trilinear(c []float64, u float64, v float64, w float64) float64 {
+func interp(c []geometry.Unit, u float64, v float64, w float64) float64 {
+	u2 := u * u * (3 - 2*u)
+	v2 := v * v * (3 - 2*v)
+	w2 := w * w * (3 - 2*w)
+
 	var sum float64
-	for i := 0.0; i < 2; i++ {
-		for j := 0.0; j < 2; j++ {
-			for k := 0.0; k < 2; k++ {
-				xyz := c[4*int(i)+2*int(j)+int(k)]
-				sum += (i*u + (1-i)*(1-u)) * (j*v + (1-j)*(1-v)) *
-					(k*w + (1-k)*(1-w)) *
-					xyz
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 2; j++ {
+			for k := 0; k < 2; k++ {
+				weight := geometry.NewVec(u-float64(i), v-float64(j), w-float64(k))
+				xyz := c[4*i+2*j+k]
+
+				sum += (float64(i)*u2 + (1-float64(i))*(1-u2)) * (float64(j)*v2 + (1-float64(j))*(1-v2)) * (float64(k)*w2 + (1-float64(k))*(1-w2)) * xyz.Vec.Dot(weight)
 			}
 		}
 	}
 	return sum
 }
 
-func perlinGen(rnd geometry.Rnd) []float64 {
-	p := make([]float64, 256)
+func perlinGen(rnd geometry.Rnd) []geometry.Unit {
+	p := make([]geometry.Unit, 256)
 	for i := 0; i < len(p); i++ {
-		p[i] = rnd.Float64()
+		p[i] = geometry.RandUnit(rnd)
 	}
 	return p
 }
@@ -101,4 +93,16 @@ func perlinGenPerm(rnd geometry.Rnd) []int {
 	}
 	p = perlinPermute(rnd, p, 256)
 	return p
+}
+
+func (per Perlin) turbulence(p geometry.Vec, depth int) float64 {
+	var sum float64
+	p2 := p
+	weight := 1.0
+	for i := 0; i < depth; i++ {
+		sum += weight * per.GenerateTrilinear(p2)
+		weight *= 0.5
+		p2 = p2.Scale(2)
+	}
+	return math.Abs(sum)
 }

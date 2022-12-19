@@ -201,3 +201,8 @@ func (v Vec) Max(v2 Vec) Vec {
 	}
 	return v
 }
+
+// RandUnit returns a random unit vector.
+func RandUnit(rnd Rnd) Unit {
+	return NewVec(2*rnd.Float64()-1, 2*rnd.Float64()-1, 2*rnd.Float64()-1).ToUnit()
+}
