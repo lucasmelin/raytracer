@@ -24,7 +24,7 @@ func NewLambertian(albedo Color) Lambertian {
 // Scatter scatters light rays in a Lambertian pattern.
 func (l Lambertian) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
 	out := rec.normal.Add(geometry.RandVecInSphere(r.Rnd)).ToUnit()
-	return true, &l.Albedo, geometry.NewRay(rec.p, out.ToUnit(), r.Rnd)
+	return true, &l.Albedo, geometry.NewRay(rec.p, out.ToUnit(), r.Time, r.Rnd)
 }
 
 // Metal represents a reflective material.
@@ -42,7 +42,7 @@ func NewMetal(albedo Color, roughness float64) Metal {
 func (m Metal) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
 	reflected := r.Direction.ToUnit().Reflect(rec.normal)
 	out := reflected.Add(geometry.RandVecInSphere(r.Rnd).Scale(m.Rough))
-	return true, &m.Albedo, geometry.NewRay(rec.p, out.ToUnit(), r.Rnd)
+	return true, &m.Albedo, geometry.NewRay(rec.p, out.ToUnit(), r.Time, r.Rnd)
 }
 
 // Dielectric represents a clear material.
@@ -76,7 +76,7 @@ func (d Dielectric) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geo
 		a := in.Reflect(n)
 		out = &a
 	}
-	return true, &White, geometry.NewRay(rec.p, out.ToUnit(), r.Rnd)
+	return true, &White, geometry.NewRay(rec.p, out.ToUnit(), r.Time, r.Rnd)
 }
 
 func schlick(cos float64, refIndex float64) float64 {

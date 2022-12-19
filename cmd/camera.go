@@ -47,5 +47,9 @@ func (c camera) ray(rnd geometry.Rnd, u float64, v float64) *geometry.Ray {
 	source := c.origin.Add(offset)
 	dest := c.lowerLeftCorner.Add(c.horizontal.Scale(u).Add(c.vertical.Scale(v)))
 
-	return geometry.NewRay(source, dest.Sub(source).ToUnit(), rnd)
+	return geometry.NewRay(source, dest.Sub(source).ToUnit(), floatInRange(rnd, 0, 1), rnd)
+}
+
+func floatInRange(rnd geometry.Rnd, min float64, max float64) float64 {
+	return min + rnd.Float64()*(max-min)
 }

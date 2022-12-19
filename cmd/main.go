@@ -95,18 +95,23 @@ func buildFinalWorld(width, height int) (Camera, display.World) {
 				switch {
 				case chooseMaterial < 0.8:
 					// Lambertian
+					rnd := rand.New(rand.NewSource(rand.Int63()))
+					center2 := center.Add(geometry.NewVec(0, geometry.FloatInRange(rnd, 0, 0.5), 0))
 					world.Hittables = append(world.Hittables,
-						display.Sphere{
-							Center: center,
-							Radius: 0.2,
-							Material: display.NewLambertian(
+						display.NewMovingSphere(
+							center,
+							center2,
+							0.0,
+							1.0,
+							0.2,
+							display.NewLambertian(
 								display.NewColor(
 									rand.Float64()*rand.Float64(),
 									rand.Float64()*rand.Float64(),
 									rand.Float64()*rand.Float64(),
 								),
 							),
-						},
+						),
 					)
 				case chooseMaterial < 0.95:
 					// Metal
