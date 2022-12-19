@@ -19,26 +19,41 @@ func NewSphere(center geometry.Vec, radius float64, material Material) *Sphere {
 }
 
 // Hit finds the first intersection between a ray and the sphere's surface.
-func (s *Sphere) Hit(r geometry.Ray, tMin, tMax float64) (float64, Surfacer) {
+func (s Sphere) Hit(r *geometry.Ray, tMin float64, tMax float64) (bool, *HitRecord) {
 	oc := r.Origin.Sub(s.Center)
 	a := r.Direction.Dot(r.Direction)
 	halfb := oc.Dot(r.Direction.Vec)
 	c := oc.Dot(oc) - s.Radius*s.Radius
 	discriminant := halfb*halfb - a*c
 	if discriminant <= 0 {
-		return 0, s
+		return false, nil
 	}
 	// Find the nearest root that lies in the acceptable range.
 	sqrt := math.Sqrt(discriminant)
 	t := (-halfb - sqrt) / a
 	if t > tMin && t < tMax {
-		return t, s
+		hitPoint := r.At(t)
+		hr := HitRecord{
+			t:        t,
+			p:        hitPoint,
+			normal:   hitPoint.Sub(s.Center).Scale(1 / s.Radius).ToUnit(),
+			Material: s.Material,
+		}
+		return true, &hr
 	}
+
 	t = (-halfb + sqrt) / a
 	if t > tMin && t < tMax {
-		return t, s
+		hitPoint := r.At(t)
+		hr := HitRecord{
+			t:        t,
+			p:        hitPoint,
+			normal:   hitPoint.Sub(s.Center).Scale(1 / s.Radius).ToUnit(),
+			Material: s.Material,
+		}
+		return true, &hr
 	}
-	return 0, s
+	return false, nil
 }
 
 // Surface returns the normal and material at point p on the Sphere.

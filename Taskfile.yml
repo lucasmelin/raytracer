@@ -18,3 +18,6 @@ tasks:
     cmds:
       - touch image.ppm image.png
       - rm image.ppm image.png
+  build:
+    cmds:
+      - build -o raytracer ./cmd
