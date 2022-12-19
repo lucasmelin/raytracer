@@ -79,7 +79,7 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 func buildTwoPerlinSpheresWorld(width, height int) (Camera, *display.BVH) {
 	world := display.List{}
 	rnd := rand.New(rand.NewSource(rand.Int63()))
-	perlin := display.NewNoise(rnd)
+	perlin := display.NewNoise(rnd, 5)
 	world.Hittables = append(world.Hittables,
 		&display.Sphere{
 			Center:   geometry.Vec{Y: -1000.0},
