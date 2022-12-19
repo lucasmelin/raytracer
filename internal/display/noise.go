@@ -1,6 +1,10 @@
 package display
 
-import "github.com/lucasmelin/raytracer/internal/geometry"
+import (
+	"math"
+
+	"github.com/lucasmelin/raytracer/internal/geometry"
+)
 
 type Noise struct {
 	Rnd   geometry.Rnd
@@ -13,6 +17,6 @@ func NewNoise(rnd geometry.Rnd, scale float64) Noise {
 }
 
 func (n Noise) At(u float64, v float64, p geometry.Vec) Color {
-	scaleFactor := n.per.turbulence(p.Scale(n.Scale), 7)
+	scaleFactor := 0.5 * (1 + math.Sin(n.Scale*p.Z+10*n.per.turbulence(p, 7)))
 	return NewColor(1, 1, 1).Scale(scaleFactor)
 }
