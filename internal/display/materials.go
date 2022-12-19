@@ -9,11 +9,19 @@ import (
 // Material represents a material that scatters light.
 type Material interface {
 	Scatter(r *geometry.Ray, rec *HitRecord) (wasScattered bool, attenuation *Color, scattered *geometry.Ray)
+	Emit(rec *HitRecord) Color
+}
+
+type nonEmitter struct{}
+
+func (n nonEmitter) Emit(rec *HitRecord) Color {
+	return Black
 }
 
 // Lambertian represents a Lambertian material attenuated by an Albedo.
 type Lambertian struct {
 	Albedo Texture
+	nonEmitter
 }
 
 // NewLambertian creates a new Lambertian material with a given color.
@@ -32,6 +40,7 @@ func (l Lambertian) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geo
 type Metal struct {
 	Albedo Color
 	Rough  float64
+	nonEmitter
 }
 
 // NewMetal creates a new Metal material with a given color and roughness.
@@ -49,6 +58,7 @@ func (m Metal) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry
 // Dielectric represents a clear material.
 type Dielectric struct {
 	RefIndex float64
+	nonEmitter
 }
 
 // NewDielectric creates a new material with a given index of refraction.
@@ -84,4 +94,20 @@ func schlick(cos float64, refIndex float64) float64 {
 	r := (1 - refIndex) / (1 + refIndex)
 	r = r * r
 	return r + (1-r)*math.Pow((1-cos), 5)
+}
+
+type Light struct {
+	Solid Solid
+}
+
+func NewLight(c Color) *Light {
+	return &Light{Solid: NewSolid(c)}
+}
+
+func (l Light) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
+	return false, &Color{}, &geometry.Ray{}
+}
+
+func (l Light) Emit(rec *HitRecord) Color {
+	return l.Solid.At(rec.u, rec.v, rec.p)
 }

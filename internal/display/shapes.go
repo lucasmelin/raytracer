@@ -1,10 +1,13 @@
 package display
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/lucasmelin/raytracer/internal/geometry"
 )
+
+const bias = 0.001
 
 // Sphere represents a sphere with a Center and a Radius.
 type Sphere struct {
@@ -174,4 +177,117 @@ func (s *MovingSphere) UV(p geometry.Vec, t float64) (float64, float64) {
 	u := 1 - (phi+math.Pi)/(2*math.Pi)
 	v := (theta + math.Pi/2) / math.Pi
 	return u, v
+}
+
+type Rectangle struct {
+	Min      geometry.Vec
+	Max      geometry.Vec
+	Axis     int
+	Material Material
+}
+
+func NewRectangle(min geometry.Vec, max geometry.Vec, material Material) *Rectangle {
+	rect := Rectangle{
+		Min:      min,
+		Max:      max,
+		Material: material,
+	}
+	if min.X == max.X {
+		rect.Axis = 0
+		return &rect
+	}
+	if min.Y == max.Y {
+		rect.Axis = 1
+		return &rect
+	}
+	rect.Axis = 2
+	return &rect
+}
+
+// Hit finds the first intersection between a ray and the rectangle's surface.
+func (rect *Rectangle) Hit(ray *geometry.Ray, dMin float64, dMax float64) (bool, *HitRecord) {
+	a0 := rect.Axis
+
+	var k float64
+	var d float64
+	switch a0 {
+	case 0:
+		k = rect.Min.X
+		d = (k - ray.Origin.X) / ray.Direction.X
+		e1 := ray.Origin.Y + d*ray.Direction.Y
+		e2 := ray.Origin.Z + d*ray.Direction.Z
+		if e1 < rect.Min.Y || e1 > rect.Max.Y || e2 < rect.Min.Z || e2 > rect.Max.Z {
+			return false, nil
+		}
+
+		norm := geometry.NewVec(0, 0, 0)
+		norm.X = 1
+		hr := HitRecord{
+			t:        d,
+			p:        ray.At(d),
+			normal:   norm.ToUnit(),
+			Material: rect.Material,
+			u:        (e1 - rect.Min.Y) / (rect.Max.Y - rect.Min.Y),
+			v:        (e2 - rect.Min.Z) / (rect.Max.Z - rect.Min.Z),
+		}
+		return true, &hr
+	case 1:
+		k = rect.Min.Y
+		d = (k - ray.Origin.Y) / ray.Direction.Y
+		e1 := ray.Origin.Z + d*ray.Direction.Z
+		e2 := ray.Origin.X + d*ray.Direction.X
+		if e1 < rect.Min.Z || e1 > rect.Max.Z || e2 < rect.Min.X || e2 > rect.Max.X {
+			return false, nil
+		}
+
+		norm := geometry.NewVec(0, 0, 0)
+		norm.Y = 1
+		hr := HitRecord{
+			t:        d,
+			p:        ray.At(d),
+			normal:   norm.ToUnit(),
+			Material: rect.Material,
+			u:        (e1 - rect.Min.Z) / (rect.Max.Z - rect.Min.Z),
+			v:        (e2 - rect.Min.X) / (rect.Max.X - rect.Min.X),
+		}
+		return true, &hr
+	case 2:
+		k = rect.Min.Z
+		d = (k - ray.Origin.Z) / ray.Direction.Z
+		e1 := ray.Origin.X + d*ray.Direction.X
+		e2 := ray.Origin.Y + d*ray.Direction.Y
+		if e1 < rect.Min.X || e1 > rect.Max.X || e2 < rect.Min.Y || e2 > rect.Max.Y {
+			return false, nil
+		}
+
+		norm := geometry.NewVec(0, 0, 0)
+		norm.Z = 1
+		hr := HitRecord{
+			t:        d,
+			p:        ray.At(d),
+			normal:   norm.ToUnit(),
+			Material: rect.Material,
+			u:        (e1 - rect.Min.X) / (rect.Max.X - rect.Min.X),
+			v:        (e2 - rect.Min.Y) / (rect.Max.Y - rect.Min.Y),
+		}
+		return true, &hr
+	default:
+		panic(fmt.Sprintf("No valid coordinate for axis %d", a0))
+	}
+}
+
+// Box returns the axis-Aligned bounding box encompassing the Rectangle.
+func (r *Rectangle) Box(t0, t1 float64) (box *AABB) {
+	b := geometry.NewVec(0, 0, 0)
+	switch r.Axis {
+	case 0:
+		b.X = 0.001
+	case 1:
+		b.Y = 0.001
+	case 2:
+		b.Z = 0.001
+	default:
+		panic(fmt.Sprintf("No valid bias for axis %d", r.Axis))
+	}
+	return NewAABB(r.Min.Sub(b), r.Max.Add(b))
 }

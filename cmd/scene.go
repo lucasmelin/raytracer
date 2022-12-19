@@ -181,12 +181,10 @@ func rayColor(r *geometry.Ray, hb display.HitBoxer, depth int) display.Color {
 	}
 	if hit, hr := hb.Hit(r, bias, math.MaxFloat64); hit {
 		if wasScattered, attenuation, scattered := hr.Material.Scatter(r, hr); wasScattered {
-			return attenuation.Mult(rayColor(scattered, hb, depth+1))
+			indirect := attenuation.Mult(rayColor(scattered, hb, depth+1))
+			return hr.Material.Emit(hr).Add(indirect)
 		}
-		return display.Black
+		return hr.Material.Emit(hr)
 	}
-	t := 0.5 * (r.Direction.Y + 1.0)
-	white := display.White.Scale(1.0 - t)
-	blue := display.NewColor(0.5, 0.7, 1.0).Scale(t)
-	return white.Add(blue)
+	return display.Black
 }

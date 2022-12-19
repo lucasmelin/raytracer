@@ -76,6 +76,39 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 	}
 }
 
+func simpleLight(width int, height int) (Camera, *display.BVH) {
+	world := display.List{}
+	rnd := rand.New(rand.NewSource(rand.Int63()))
+	perlin := display.NewNoise(rnd, 4)
+
+	world.Hittables = append(world.Hittables,
+		display.NewSphere(
+			geometry.NewVec(0, -1000, 0), 1000, display.NewLambertian(perlin),
+		),
+		display.NewSphere(
+			geometry.NewVec(0, 2, 0), 2, display.NewLambertian(perlin),
+		),
+		display.NewRectangle(
+			geometry.NewVec(3, 1, -2), geometry.NewVec(5, 3, -2), display.NewLight(display.NewColor(4, 4, 4)),
+		),
+	)
+
+	lookAt := geometry.NewVec(0, 2, 0)
+	lookFrom := geometry.NewVec(24, 4, 6)
+	aperture := 0.1
+	distToFocus := 10.0
+	camera := NewCamera(
+		lookFrom,
+		lookAt,
+		geometry.NewVec(0, 1.0, 0),
+		20,
+		float64(width)/float64(height),
+		aperture,
+		distToFocus,
+	)
+	return camera, display.NewBVH(0, 0, 1, world.Hittables...)
+}
+
 func jupiter(width int, height int) (Camera, *display.Sphere) {
 	f, err := os.Open("assets/jupiter.jpeg")
 	if err != nil {
@@ -294,8 +327,8 @@ func main() {
 	flag.Parse()
 
 	if len(options.RaysPerPixel) == 0 {
-		// Default 1 ray on the first pass, 99 rays on the subsequent pass.
-		options.RaysPerPixel = []int{1, 99}
+		// Default 1 ray on the first pass, 199 rays on the subsequent pass.
+		options.RaysPerPixel = []int{1, 199}
 	}
 
 	rand.Seed(options.Seed)
@@ -332,7 +365,7 @@ func main() {
 		panic(newErr)
 	}
 
-	camera, bvh := jupiter(options.Width, options.Height)
+	camera, bvh := simpleLight(options.Width, options.Height)
 
 	scene := &Scene{
 		width:        options.Width,
