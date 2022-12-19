@@ -76,22 +76,20 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 	}
 }
 
-func buildTwoSpheresWorld(width, height int) (Camera, *display.BVH) {
+func buildTwoPerlinSpheresWorld(width, height int) (Camera, *display.BVH) {
 	world := display.List{}
-	checkered := display.NewChecker(10,
-		display.NewSolid(display.NewColor(0.2, 0.3, 0.1)),
-		display.NewSolid(display.NewColor(0.9, 0.9, 0.9)),
-	)
+	rnd := rand.New(rand.NewSource(rand.Int63()))
+	perlin := display.NewNoise(rnd)
 	world.Hittables = append(world.Hittables,
 		&display.Sphere{
-			Center:   geometry.Vec{Y: -10.0},
-			Radius:   10,
-			Material: display.NewLambertian(checkered),
+			Center:   geometry.Vec{Y: -1000.0},
+			Radius:   1000,
+			Material: display.NewLambertian(perlin),
 		},
 		&display.Sphere{
-			Center:   geometry.Vec{Y: 10.0},
-			Radius:   10,
-			Material: display.NewLambertian(checkered),
+			Center:   geometry.Vec{Y: 2.0},
+			Radius:   2,
+			Material: display.NewLambertian(perlin),
 		},
 	)
 	lookAt := geometry.Vec{}
@@ -309,7 +307,7 @@ func main() {
 		panic(newErr)
 	}
 
-	camera, bvh := buildTwoSpheresWorld(options.Width, options.Height)
+	camera, bvh := buildTwoPerlinSpheresWorld(options.Width, options.Height)
 
 	scene := &Scene{
 		width:        options.Width,
