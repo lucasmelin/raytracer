@@ -12,5 +12,5 @@ func NewNoise(rnd geometry.Rnd) Noise {
 }
 
 func (n Noise) At(u float64, v float64, p geometry.Vec) Color {
-	return NewColor(1, 1, 1).Scale(n.per.Generate(p))
+	return NewColor(1, 1, 1).Scale(n.per.GenerateTrilinear(p))
 }
