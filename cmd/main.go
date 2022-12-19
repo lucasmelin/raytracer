@@ -77,14 +77,29 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 }
 
 // buildFinalWorld sets up the world and camera for the final scene/cover of the book.
-func buildFinalWorld(width, height int) (Camera, display.World) {
-	world := display.World{}
+func buildFinalWorld(width, height int) (Camera, *display.BVH) {
+	world := display.List{}
 	maxSpheres := 500
 	world.Hittables = append(world.Hittables,
-		display.Sphere{
+		&display.Sphere{
 			Center:   geometry.Vec{Y: -1000.0},
 			Radius:   1000,
 			Material: display.NewLambertian(display.NewColor(0.5, 0.5, 0.5)),
+		},
+		&display.Sphere{
+			Center:   geometry.NewVec(0, 1, 0),
+			Radius:   1.0,
+			Material: display.NewDielectric(1.5),
+		},
+		&display.Sphere{
+			Center:   geometry.NewVec(-4, 1, 0),
+			Radius:   1.0,
+			Material: display.NewLambertian(display.NewColor(0.4, 0.2, 0.1)),
+		},
+		&display.Sphere{
+			Center:   geometry.NewVec(4, 1, 0),
+			Radius:   1.0,
+			Material: display.NewMetal(display.NewColor(0.7, 0.6, 0.5), 0),
 		},
 	)
 	for a := -11; a < 11 && len(world.Hittables) < maxSpheres; a++ {
@@ -96,7 +111,7 @@ func buildFinalWorld(width, height int) (Camera, display.World) {
 				case chooseMaterial < 0.8:
 					// Lambertian
 					rnd := rand.New(rand.NewSource(rand.Int63()))
-					center2 := center.Add(geometry.NewVec(0, geometry.FloatInRange(rnd, 0, 0.5), 0))
+					center2 := center.Add(geometry.NewVec(0, geometry.FloatInRange(rnd, 0, 0.1), 0))
 					world.Hittables = append(world.Hittables,
 						display.NewMovingSphere(
 							center,
@@ -116,7 +131,7 @@ func buildFinalWorld(width, height int) (Camera, display.World) {
 				case chooseMaterial < 0.95:
 					// Metal
 					world.Hittables = append(world.Hittables,
-						display.Sphere{
+						&display.Sphere{
 							Center: center,
 							Radius: 0.2,
 							Material: display.NewMetal(
@@ -132,7 +147,7 @@ func buildFinalWorld(width, height int) (Camera, display.World) {
 				default:
 					// Dielectric
 					world.Hittables = append(world.Hittables,
-						display.Sphere{
+						&display.Sphere{
 							Center:   center,
 							Radius:   0.2,
 							Material: display.NewDielectric(1.5),
@@ -142,22 +157,6 @@ func buildFinalWorld(width, height int) (Camera, display.World) {
 			}
 		}
 	}
-
-	world.Hittables = append(world.Hittables,
-		display.Sphere{
-			Center:   geometry.NewVec(0, 1, 0),
-			Radius:   1.0,
-			Material: display.NewDielectric(1.5),
-		},
-		display.Sphere{
-			Center:   geometry.NewVec(-4, 1, 0),
-			Radius:   1.0,
-			Material: display.NewLambertian(display.NewColor(0.4, 0.2, 0.1)),
-		},
-		display.Sphere{
-			Center:   geometry.NewVec(4, 1, 0),
-			Radius:   1.0,
-			Material: display.NewMetal(display.NewColor(0.7, 0.6, 0.5), 0)})
 
 	lookAt := geometry.Vec{}
 	lookFrom := geometry.NewVec(13, 2, 3)
@@ -173,7 +172,7 @@ func buildFinalWorld(width, height int) (Camera, display.World) {
 		distToFocus,
 	)
 
-	return camera, world
+	return camera, display.NewBVH(0, 0, 1, world.Hittables...)
 }
 
 // saveImage saves the image to a file in png format.
@@ -267,14 +266,14 @@ func main() {
 		panic(newErr)
 	}
 
-	camera, world := buildFinalWorld(options.Width, options.Height)
+	camera, bvh := buildFinalWorld(options.Width, options.Height)
 
 	scene := &Scene{
 		width:        options.Width,
 		height:       options.Height,
 		raysPerPixel: options.RaysPerPixel,
 		camera:       camera,
-		world:        world,
+		hitBoxer:     bvh,
 	}
 	pixels, completed := scene.Render(options.CPU)
 

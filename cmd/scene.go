@@ -21,7 +21,7 @@ type Scene struct {
 	width, height int
 	raysPerPixel  []int // array index represents the render pass
 	camera        Camera
-	world         display.World
+	hitBoxer      display.HitBoxer
 }
 
 // pixel represents the pixel to be processed.
@@ -60,7 +60,7 @@ func (scene *Scene) render(rnd geometry.Rnd, pixel *pixel, raysPerPixel int) uin
 		u := (float64(pixel.x) + rnd.Float64()) / float64(scene.width)
 		v := (float64(pixel.y) + rnd.Float64()) / float64(scene.height)
 		r := scene.camera.ray(rnd, u, v)
-		c = c.Add(rayColor(r, scene.world, 0))
+		c = c.Add(rayColor(r, scene.hitBoxer, 0))
 	}
 
 	pixel.color = c
@@ -174,14 +174,14 @@ func (scene *Scene) Render(parallelCount int) (Pixels, chan struct{}) {
 }
 
 // rayColor computes the color of the ray and scatters more rays according to the properties of the hittable.
-func rayColor(r *geometry.Ray, world display.World, depth int) display.Color {
+func rayColor(r *geometry.Ray, hb display.HitBoxer, depth int) display.Color {
 	// If we've exceeded the ray bounce limit, no more light is gathered.
 	if depth >= 50 {
 		return display.Black
 	}
-	if hit, hr := world.Hit(r, bias, math.MaxFloat64); hit {
+	if hit, hr := hb.Hit(r, bias, math.MaxFloat64); hit {
 		if wasScattered, attenuation, scattered := hr.Material.Scatter(r, hr); wasScattered {
-			return attenuation.Mult(rayColor(scattered, world, depth+1))
+			return attenuation.Mult(rayColor(scattered, hb, depth+1))
 		}
 		return display.Black
 	}

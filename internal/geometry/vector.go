@@ -173,3 +173,31 @@ func RandVecInDisk(rnd Rnd) Vec {
 		}
 	}
 }
+
+// Min returns a new Vector using the smallest elements of two vectors.
+func (v Vec) Min(v2 Vec) Vec {
+	if v2.X < v.X {
+		v.X = v2.X
+	}
+	if v2.Y < v.Y {
+		v.Y = v2.Y
+	}
+	if v2.Z < v.Z {
+		v.Z = v2.Z
+	}
+	return v
+}
+
+// Max returns a new Vector using the largest elements of two vectors.
+func (v Vec) Max(v2 Vec) Vec {
+	if v2.X > v.X {
+		v.X = v2.X
+	}
+	if v2.Y > v.Y {
+		v.Y = v2.Y
+	}
+	if v2.Z > v.Z {
+		v.Z = v2.Z
+	}
+	return v
+}

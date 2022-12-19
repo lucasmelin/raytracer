@@ -126,3 +126,22 @@ func (s *MovingSphere) Center(t float64) geometry.Vec {
 func (s *Sphere) Surface(p geometry.Vec) (geometry.Unit, Material) {
 	return p.Sub(s.Center).Scale(s.Radius).ToUnit(), s.Material
 }
+
+func (s *Sphere) Box(t0 float64, t1 float64) *AABB {
+	return NewAABB(
+		s.Center.Sub(geometry.NewVec(s.Radius, s.Radius, s.Radius)),
+		s.Center.Add(geometry.NewVec(s.Radius, s.Radius, s.Radius)),
+	)
+}
+
+func (s *MovingSphere) Box(t0 float64, t1 float64) *AABB {
+	box0 := NewAABB(
+		s.Center(t0).Sub(geometry.NewVec(s.Radius, s.Radius, s.Radius)),
+		s.Center(t0).Add(geometry.NewVec(s.Radius, s.Radius, s.Radius)),
+	)
+	box1 := NewAABB(
+		s.Center(t1).Sub(geometry.NewVec(s.Radius, s.Radius, s.Radius)),
+		s.Center(t1).Add(geometry.NewVec(s.Radius, s.Radius, s.Radius)),
+	)
+	return box0.Add(box1)
+}
