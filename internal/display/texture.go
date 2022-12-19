@@ -40,6 +40,11 @@ func (per Perlin) GenerateTrilinear(p geometry.Vec) float64 {
 	v := p.Y - math.Floor(p.Y)
 	w := p.Z - math.Floor(p.Z)
 
+	// Hermitian smoothing.
+	u = u * u * (3 - 2*u)
+	v = v * v * (3 - 2*v)
+	w = w * w * (3 - 2*w)
+
 	i := int(math.Floor(p.X))
 	j := int(math.Floor(p.Y))
 	k := int(math.Floor(p.Z))
