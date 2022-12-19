@@ -76,15 +76,56 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 	}
 }
 
+func buildTwoSpheresWorld(width, height int) (Camera, *display.BVH) {
+	world := display.List{}
+	checkered := display.NewChecker(10,
+		display.NewSolid(display.NewColor(0.2, 0.3, 0.1)),
+		display.NewSolid(display.NewColor(0.9, 0.9, 0.9)),
+	)
+	world.Hittables = append(world.Hittables,
+		&display.Sphere{
+			Center:   geometry.Vec{Y: -10.0},
+			Radius:   10,
+			Material: display.NewLambertian(checkered),
+		},
+		&display.Sphere{
+			Center:   geometry.Vec{Y: 10.0},
+			Radius:   10,
+			Material: display.NewLambertian(checkered),
+		},
+	)
+	lookAt := geometry.Vec{}
+	lookFrom := geometry.NewVec(13, 2, 3)
+	aperture := 0.1
+	distToFocus := 10.0
+	camera := NewCamera(
+		lookFrom,
+		lookAt,
+		geometry.NewVec(0, 1.0, 0),
+		20,
+		float64(width)/float64(height),
+		aperture,
+		distToFocus,
+	)
+
+	return camera, display.NewBVH(0, 0, 1, world.Hittables...)
+}
+
 // buildFinalWorld sets up the world and camera for the final scene/cover of the book.
 func buildFinalWorld(width, height int) (Camera, *display.BVH) {
 	world := display.List{}
 	maxSpheres := 500
+
+	checkered := display.NewChecker(10,
+		display.NewSolid(display.NewColor(0.2, 0.3, 0.1)),
+		display.NewSolid(display.NewColor(0.9, 0.9, 0.9)),
+	)
+
 	world.Hittables = append(world.Hittables,
 		&display.Sphere{
 			Center:   geometry.Vec{Y: -1000.0},
 			Radius:   1000,
-			Material: display.NewLambertian(display.NewColor(0.5, 0.5, 0.5)),
+			Material: display.NewLambertian(checkered),
 		},
 		&display.Sphere{
 			Center:   geometry.NewVec(0, 1, 0),
@@ -94,7 +135,7 @@ func buildFinalWorld(width, height int) (Camera, *display.BVH) {
 		&display.Sphere{
 			Center:   geometry.NewVec(-4, 1, 0),
 			Radius:   1.0,
-			Material: display.NewLambertian(display.NewColor(0.4, 0.2, 0.1)),
+			Material: display.NewLambertian(display.NewSolid(display.NewColor(0.4, 0.2, 0.1))),
 		},
 		&display.Sphere{
 			Center:   geometry.NewVec(4, 1, 0),
@@ -120,10 +161,12 @@ func buildFinalWorld(width, height int) (Camera, *display.BVH) {
 							1.0,
 							0.2,
 							display.NewLambertian(
-								display.NewColor(
-									rand.Float64()*rand.Float64(),
-									rand.Float64()*rand.Float64(),
-									rand.Float64()*rand.Float64(),
+								display.NewSolid(
+									display.NewColor(
+										rand.Float64()*rand.Float64(),
+										rand.Float64()*rand.Float64(),
+										rand.Float64()*rand.Float64(),
+									),
 								),
 							),
 						),
@@ -266,7 +309,7 @@ func main() {
 		panic(newErr)
 	}
 
-	camera, bvh := buildFinalWorld(options.Width, options.Height)
+	camera, bvh := buildTwoSpheresWorld(options.Width, options.Height)
 
 	scene := &Scene{
 		width:        options.Width,

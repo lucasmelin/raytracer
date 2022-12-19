@@ -13,18 +13,19 @@ type Material interface {
 
 // Lambertian represents a Lambertian material attenuated by an Albedo.
 type Lambertian struct {
-	Albedo Color
+	Albedo Texture
 }
 
 // NewLambertian creates a new Lambertian material with a given color.
-func NewLambertian(albedo Color) Lambertian {
+func NewLambertian(albedo Texture) Lambertian {
 	return Lambertian{Albedo: albedo}
 }
 
 // Scatter scatters light rays in a Lambertian pattern.
 func (l Lambertian) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
 	out := rec.normal.Add(geometry.RandVecInSphere(r.Rnd)).ToUnit()
-	return true, &l.Albedo, geometry.NewRay(rec.p, out.ToUnit(), r.Time, r.Rnd)
+	attenuation := l.Albedo.At(0, 0, rec.p)
+	return true, &attenuation, geometry.NewRay(rec.p, out.ToUnit(), r.Time, r.Rnd)
 }
 
 // Metal represents a reflective material.
