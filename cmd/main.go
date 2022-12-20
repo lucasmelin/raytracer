@@ -88,6 +88,9 @@ func simpleLight(width int, height int) (Camera, *display.BVH) {
 		display.NewSphere(
 			geometry.NewVec(0, 2, 0), 2, display.NewLambertian(perlin),
 		),
+		display.NewSphere(
+			geometry.NewVec(0, 7, 0), 2, display.NewLight(display.NewColor(0, 2, 4)),
+		),
 		display.NewRectangle(
 			geometry.NewVec(3, 1, -2), geometry.NewVec(5, 3, -2), display.NewLight(display.NewColor(4, 4, 4)),
 		),
