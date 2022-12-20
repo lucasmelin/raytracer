@@ -100,6 +100,8 @@ func cornell(width int, height int) (Camera, *display.BVH) {
 		display.NewFlip(display.NewRectangle(
 			geometry.NewVec(0, 555, 0), geometry.NewVec(555, 555, 555), white,
 		)),
+		display.NewBlock(geometry.NewVec(130, 0, 65), geometry.NewVec(295, 165, 230), white),
+		display.NewBlock(geometry.NewVec(265, 0, 295), geometry.NewVec(430, 330, 460), white),
 	)
 
 	lookAt := geometry.NewVec(278, 278, 0)

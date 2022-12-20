@@ -303,3 +303,20 @@ func (r *Rectangle) Box(t0, t1 float64) (box *AABB) {
 	}
 	return NewAABB(r.Min.Sub(b), r.Max.Add(b))
 }
+
+type Block struct {
+	List
+}
+
+func NewBlock(min geometry.Vec, max geometry.Vec, material Material) *Block {
+	return &Block{List: *NewList(
+		NewRectangle(geometry.NewVec(min.X, min.Y, max.Z), geometry.NewVec(max.X, max.Y, max.Z), material),
+		NewFlip(NewRectangle(geometry.NewVec(min.X, min.Y, min.Z), geometry.NewVec(max.X, max.Y, min.Z), material)),
+
+		NewRectangle(geometry.NewVec(min.X, max.Y, min.Z), geometry.NewVec(max.X, max.Y, max.Z), material),
+		NewFlip(NewRectangle(geometry.NewVec(min.X, min.Y, min.Z), geometry.NewVec(max.X, min.Y, max.Z), material)),
+
+		NewRectangle(geometry.NewVec(max.X, min.Y, min.Z), geometry.NewVec(max.X, max.Y, max.Z), material),
+		NewFlip(NewRectangle(geometry.NewVec(min.X, min.Y, min.Z), geometry.NewVec(min.X, max.Y, max.Z), material)),
+	)}
+}
