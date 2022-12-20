@@ -76,6 +76,57 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 	}
 }
 
+func cornellSmoke(width int, height int) (Camera, *display.BVH) {
+	world := display.List{}
+	rnd := rand.New(rand.NewSource(rand.Int63()))
+	green := display.NewLambertian(display.NewSolid(display.NewColor(0.12, 0.45, 0.15)))
+	red := display.NewLambertian(display.NewSolid(display.NewColor(0.65, 0.05, 0.05)))
+	white := display.NewLambertian(display.NewSolid(display.NewColor(0.73, 0.73, 0.73)))
+	light := display.NewLight(display.NewColor(15, 15, 15))
+	smoke := display.NewIsotropic(display.NewSolid(display.NewColor(0, 0, 0)), rnd)
+	fog := display.NewIsotropic(display.NewSolid(display.NewColor(1, 1, 1)), rnd)
+
+	world.Hittables = append(world.Hittables,
+		display.NewFlip(display.NewRectangle(
+			geometry.NewVec(555, 0, 0), geometry.NewVec(555, 555, 555), green,
+		)),
+		display.NewRectangle(
+			geometry.NewVec(0, 0, 0), geometry.NewVec(0, 555, 555), red,
+		),
+		display.NewRectangle(
+			geometry.NewVec(113, 554, 127), geometry.NewVec(443, 554, 432), light,
+		),
+		display.NewRectangle(
+			geometry.NewVec(0, 0, 0), geometry.NewVec(555, 0, 555), white,
+		),
+		display.NewFlip(display.NewRectangle(
+			geometry.NewVec(0, 0, 555), geometry.NewVec(555, 555, 555), white,
+		)),
+		display.NewFlip(display.NewRectangle(
+			geometry.NewVec(0, 555, 0), geometry.NewVec(555, 555, 555), white,
+		)),
+
+		display.NewVolume(display.NewTranslate(display.NewRotateY(display.NewBlock(geometry.NewVec(0, 0, 0), geometry.NewVec(165, 165, 165), white), -18), geometry.NewVec(130, 0, 65)), 0.01, fog),
+
+		display.NewVolume(display.NewTranslate(display.NewRotateY(display.NewBlock(geometry.NewVec(0, 0, 0), geometry.NewVec(165, 330, 165), white), 15), geometry.NewVec(265, 0, 295)), 0.01, smoke),
+	)
+
+	lookAt := geometry.NewVec(278, 278, 0)
+	lookFrom := geometry.NewVec(278, 278, -800)
+	aperture := 0.1
+	distToFocus := 10.0
+	camera := NewCamera(
+		lookFrom,
+		lookAt,
+		geometry.NewVec(0, 1.0, 0),
+		40,
+		float64(width)/float64(height),
+		aperture,
+		distToFocus,
+	)
+	return camera, display.NewBVH(0, 0, 1, world.Hittables...)
+}
+
 func cornell(width int, height int) (Camera, *display.BVH) {
 	world := display.List{}
 	green := display.NewLambertian(display.NewSolid(display.NewColor(0.12, 0.45, 0.15)))
@@ -412,7 +463,7 @@ func main() {
 		panic(newErr)
 	}
 
-	camera, bvh := cornell(options.Width, options.Height)
+	camera, bvh := cornellSmoke(options.Width, options.Height)
 
 	scene := &Scene{
 		width:        options.Width,

@@ -111,3 +111,18 @@ func (l Light) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry
 func (l Light) Emit(rec *HitRecord) Color {
 	return l.Solid.At(rec.u, rec.v, rec.p)
 }
+
+type Isotropic struct {
+	albedo Solid
+	Rnd    geometry.Rnd
+	nonEmitter
+}
+
+func NewIsotropic(albedo Solid, rnd geometry.Rnd) *Isotropic {
+	return &Isotropic{albedo: albedo, Rnd: rnd}
+}
+
+func (i *Isotropic) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
+	color := i.albedo.At(rec.u, rec.v, rec.p)
+	return true, &color, r
+}

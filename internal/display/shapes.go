@@ -320,3 +320,54 @@ func NewBlock(min geometry.Vec, max geometry.Vec, material Material) *Block {
 		NewFlip(NewRectangle(geometry.NewVec(min.X, min.Y, min.Z), geometry.NewVec(min.X, max.Y, max.Z), material)),
 	)}
 }
+
+type Volume struct {
+	box     HitBoxer
+	density float64
+	phase   Material
+}
+
+func NewVolume(box HitBoxer, density float64, phase Material) *Volume {
+	return &Volume{box: box, density: density, phase: phase}
+}
+
+func (v *Volume) Hit(ray *geometry.Ray, dMin float64, dMax float64) (bool, *HitRecord) {
+	didHit1, hit1 := v.box.Hit(ray, -math.MaxFloat64, math.MaxFloat64)
+	if !didHit1 {
+		return false, nil
+	}
+	didHit2, hit2 := v.box.Hit(ray, hit1.t+bias, math.MaxFloat64)
+	if !didHit2 {
+		return false, nil
+	}
+	if hit1.t < dMin {
+		hit1.t = dMin
+	}
+	if hit2.t > dMax {
+		hit2.t = dMax
+	}
+	if hit1.t > hit2.t {
+		return false, nil
+	}
+	if hit1.t < 0 {
+		hit1.t = 0
+	}
+	dInside := hit2.t - hit1.t
+	dHit := -(1 / v.density) * math.Log(ray.Rnd.Float64())
+	if dHit >= dInside {
+		return false, nil
+	}
+	d := hit1.t + dHit
+	return true, &HitRecord{
+		t:        d,
+		normal:   geometry.NewUnit(1, 0, 0),
+		u:        0,
+		v:        0,
+		p:        ray.At(d),
+		Material: v.phase,
+	}
+}
+
+func (v *Volume) Box(t0 float64, t1 float64) *AABB {
+	return v.box.Box(t0, t1)
+}
