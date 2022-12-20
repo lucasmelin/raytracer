@@ -72,3 +72,22 @@ func (ab *AABB) Add(ab2 *AABB) *AABB {
 	}
 	return NewAABB(ab.Min.Min(ab2.Min), ab.Max.Max(ab2.Max))
 }
+
+func (a *AABB) Corners() []geometry.Vec {
+	c := make([]geometry.Vec, 0, 8)
+	for i := 0.0; i < 2; i++ {
+		for j := 0.0; j < 2; j++ {
+			for k := 0.0; k < 2; k++ {
+				x := i*a.Min.X + (1-i)*a.Max.X
+				y := j*a.Min.Y + (1-j)*a.Max.Y
+				z := k*a.Min.Z + (1-k)*a.Max.Z
+				c = append(c, geometry.NewVec(x, y, z))
+			}
+		}
+	}
+	return c
+}
+
+func (a *AABB) Extend(v geometry.Vec) *AABB {
+	return NewAABB(a.Min.Min(v), a.Max.Max(v))
+}

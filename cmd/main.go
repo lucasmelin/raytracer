@@ -89,7 +89,7 @@ func cornell(width int, height int) (Camera, *display.BVH) {
 			geometry.NewVec(0, 0, 0), geometry.NewVec(0, 555, 555), red,
 		),
 		display.NewRectangle(
-			geometry.NewVec(213, 554, 227), geometry.NewVec(343, 554, 332), display.NewLight(display.NewColor(4, 4, 4)),
+			geometry.NewVec(213, 554, 227), geometry.NewVec(343, 554, 332), display.NewLight(display.NewColor(10, 10, 10)),
 		),
 		display.NewRectangle(
 			geometry.NewVec(0, 0, 0), geometry.NewVec(555, 0, 555), white,
@@ -100,8 +100,8 @@ func cornell(width int, height int) (Camera, *display.BVH) {
 		display.NewFlip(display.NewRectangle(
 			geometry.NewVec(0, 555, 0), geometry.NewVec(555, 555, 555), white,
 		)),
-		display.NewBlock(geometry.NewVec(130, 0, 65), geometry.NewVec(295, 165, 230), white),
-		display.NewBlock(geometry.NewVec(265, 0, 295), geometry.NewVec(430, 330, 460), white),
+		display.NewTranslate(display.NewRotateY(display.NewBlock(geometry.NewVec(0, 0, 0), geometry.NewVec(165, 165, 165), white), -18), geometry.NewVec(130, 0, 65)),
+		display.NewTranslate(display.NewRotateY(display.NewBlock(geometry.NewVec(0, 0, 0), geometry.NewVec(165, 330, 165), white), 15), geometry.NewVec(265, 0, 295)),
 	)
 
 	lookAt := geometry.NewVec(278, 278, 0)
