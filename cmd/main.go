@@ -76,6 +76,48 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 	}
 }
 
+func cornell(width int, height int) (Camera, *display.BVH) {
+	world := display.List{}
+	green := display.NewLambertian(display.NewSolid(display.NewColor(0.12, 0.45, 0.15)))
+	red := display.NewLambertian(display.NewSolid(display.NewColor(0.65, 0.05, 0.05)))
+	white := display.NewLambertian(display.NewSolid(display.NewColor(0.73, 0.73, 0.73)))
+	world.Hittables = append(world.Hittables,
+		display.NewFlip(display.NewRectangle(
+			geometry.NewVec(555, 0, 0), geometry.NewVec(555, 555, 555), green,
+		)),
+		display.NewRectangle(
+			geometry.NewVec(0, 0, 0), geometry.NewVec(0, 555, 555), red,
+		),
+		display.NewRectangle(
+			geometry.NewVec(213, 554, 227), geometry.NewVec(343, 554, 332), display.NewLight(display.NewColor(4, 4, 4)),
+		),
+		display.NewRectangle(
+			geometry.NewVec(0, 0, 0), geometry.NewVec(555, 0, 555), white,
+		),
+		display.NewFlip(display.NewRectangle(
+			geometry.NewVec(0, 0, 555), geometry.NewVec(555, 555, 555), white,
+		)),
+		display.NewFlip(display.NewRectangle(
+			geometry.NewVec(0, 555, 0), geometry.NewVec(555, 555, 555), white,
+		)),
+	)
+
+	lookAt := geometry.NewVec(278, 278, 0)
+	lookFrom := geometry.NewVec(278, 278, -800)
+	aperture := 0.1
+	distToFocus := 10.0
+	camera := NewCamera(
+		lookFrom,
+		lookAt,
+		geometry.NewVec(0, 1.0, 0),
+		40,
+		float64(width)/float64(height),
+		aperture,
+		distToFocus,
+	)
+	return camera, display.NewBVH(0, 0, 1, world.Hittables...)
+}
+
 func simpleLight(width int, height int) (Camera, *display.BVH) {
 	world := display.List{}
 	rnd := rand.New(rand.NewSource(rand.Int63()))
@@ -98,7 +140,7 @@ func simpleLight(width int, height int) (Camera, *display.BVH) {
 
 	lookAt := geometry.NewVec(0, 2, 0)
 	lookFrom := geometry.NewVec(24, 4, 6)
-	aperture := 0.1
+	aperture := 0.4
 	distToFocus := 10.0
 	camera := NewCamera(
 		lookFrom,
@@ -331,7 +373,7 @@ func main() {
 
 	if len(options.RaysPerPixel) == 0 {
 		// Default 1 ray on the first pass, 199 rays on the subsequent pass.
-		options.RaysPerPixel = []int{1, 199}
+		options.RaysPerPixel = []int{1, 399}
 	}
 
 	rand.Seed(options.Seed)
@@ -368,7 +410,7 @@ func main() {
 		panic(newErr)
 	}
 
-	camera, bvh := simpleLight(options.Width, options.Height)
+	camera, bvh := cornell(options.Width, options.Height)
 
 	scene := &Scene{
 		width:        options.Width,

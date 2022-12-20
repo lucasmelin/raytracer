@@ -214,18 +214,22 @@ func (rect *Rectangle) Hit(ray *geometry.Ray, dMin float64, dMax float64) (bool,
 	case 0:
 		k = rect.Min.X
 		d = (k - ray.Origin.X) / ray.Direction.X
+		if d < dMin || d > dMax {
+			return false, nil
+		}
+
 		e1 := ray.Origin.Y + d*ray.Direction.Y
 		e2 := ray.Origin.Z + d*ray.Direction.Z
 		if e1 < rect.Min.Y || e1 > rect.Max.Y || e2 < rect.Min.Z || e2 > rect.Max.Z {
 			return false, nil
 		}
 
-		norm := geometry.NewVec(0, 0, 0)
+		norm := geometry.NewUnit(0, 0, 0)
 		norm.X = 1
 		hr := HitRecord{
 			t:        d,
 			p:        ray.At(d),
-			normal:   norm.ToUnit(),
+			normal:   norm,
 			Material: rect.Material,
 			u:        (e1 - rect.Min.Y) / (rect.Max.Y - rect.Min.Y),
 			v:        (e2 - rect.Min.Z) / (rect.Max.Z - rect.Min.Z),
@@ -234,18 +238,22 @@ func (rect *Rectangle) Hit(ray *geometry.Ray, dMin float64, dMax float64) (bool,
 	case 1:
 		k = rect.Min.Y
 		d = (k - ray.Origin.Y) / ray.Direction.Y
+		if d < dMin || d > dMax {
+			return false, nil
+		}
+
 		e1 := ray.Origin.Z + d*ray.Direction.Z
 		e2 := ray.Origin.X + d*ray.Direction.X
 		if e1 < rect.Min.Z || e1 > rect.Max.Z || e2 < rect.Min.X || e2 > rect.Max.X {
 			return false, nil
 		}
 
-		norm := geometry.NewVec(0, 0, 0)
+		norm := geometry.NewUnit(0, 0, 0)
 		norm.Y = 1
 		hr := HitRecord{
 			t:        d,
 			p:        ray.At(d),
-			normal:   norm.ToUnit(),
+			normal:   norm,
 			Material: rect.Material,
 			u:        (e1 - rect.Min.Z) / (rect.Max.Z - rect.Min.Z),
 			v:        (e2 - rect.Min.X) / (rect.Max.X - rect.Min.X),
@@ -254,18 +262,22 @@ func (rect *Rectangle) Hit(ray *geometry.Ray, dMin float64, dMax float64) (bool,
 	case 2:
 		k = rect.Min.Z
 		d = (k - ray.Origin.Z) / ray.Direction.Z
+		if d < dMin || d > dMax {
+			return false, nil
+		}
+
 		e1 := ray.Origin.X + d*ray.Direction.X
 		e2 := ray.Origin.Y + d*ray.Direction.Y
 		if e1 < rect.Min.X || e1 > rect.Max.X || e2 < rect.Min.Y || e2 > rect.Max.Y {
 			return false, nil
 		}
 
-		norm := geometry.NewVec(0, 0, 0)
+		norm := geometry.NewUnit(0, 0, 0)
 		norm.Z = 1
 		hr := HitRecord{
 			t:        d,
 			p:        ray.At(d),
-			normal:   norm.ToUnit(),
+			normal:   norm,
 			Material: rect.Material,
 			u:        (e1 - rect.Min.X) / (rect.Max.X - rect.Min.X),
 			v:        (e2 - rect.Min.Y) / (rect.Max.Y - rect.Min.Y),
