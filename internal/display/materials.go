@@ -124,5 +124,6 @@ func NewIsotropic(albedo Solid, rnd geometry.Rnd) *Isotropic {
 
 func (i *Isotropic) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
 	color := i.albedo.At(rec.u, rec.v, rec.p)
+	r.Direction = geometry.RandUnit(r.Rnd)
 	return true, &color, r
 }

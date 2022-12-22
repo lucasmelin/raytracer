@@ -1,12 +1,22 @@
 # Raytracer
 
-Implementation of [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html).
+Implementation of the ray-tracing in one weekend [book series](https://raytracing.github.io/) by Peter Shirley.
 
-![Final render](./outputs/final/image-hd.png)
+## Ray Tracing in One Weekend
+[_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
 
-# Instructions
+### Final render
+![Final render](./outputs/final/oneweekend.png)
 
-- Generate PPM image with `task run`.
-- Generate PNG image with `task pngify` (requires Imagemagick).
-- View PPM image in macOS preview with `task run`.
+## Ray Tracing: The Next Week
+[_Ray Tracing: The Next Week_](https://raytracing.github.io/books/RayTracingTheNextWeek.html)
+
+### Final render
+![Final render](./outputs/final/thenextweek.png)
+
+## Usage instructions
+
+- Install dependencies with `task install-deps`.
+- Generate PNG image with `task run`.
+- View image in macOS preview with `task view`.
 - Clean up images from disk with `task clean`.

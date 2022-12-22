@@ -11,7 +11,10 @@ import (
 	"github.com/lucasmelin/raytracer/internal/geometry"
 )
 
-const bias = 0.001
+const (
+	bias        = 0.001
+	renderDepth = 10
+)
 
 // Pixels represents the array of pixels to render.
 type Pixels []uint32
@@ -176,7 +179,7 @@ func (scene *Scene) Render(parallelCount int) (Pixels, chan struct{}) {
 // rayColor computes the color of the ray and scatters more rays according to the properties of the hittable.
 func rayColor(r *geometry.Ray, hb display.HitBoxer, depth int) display.Color {
 	// If we've exceeded the ray bounce limit, no more light is gathered.
-	if depth >= 50 {
+	if depth >= renderDepth {
 		return display.Black
 	}
 	if hit, hr := hb.Hit(r, bias, math.MaxFloat64); hit {

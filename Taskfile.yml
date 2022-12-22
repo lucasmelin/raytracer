@@ -2,22 +2,22 @@ version: "3"
 
 tasks:
   run:
+    deps: [build]
     cmds:
-      - go run cmd/main.go > image.ppm
+      - ./raytracer
     generates:
-      - image.ppm
+      - image.png
   view:
-    deps: [run]
     cmds:
-      - open -a Preview image.ppm
-  pngify:
-    deps: [run]
-    cmds:
-      - convert image.ppm image.png
+      - open -a Preview image.png
   clean:
     cmds:
-      - touch image.ppm image.png
-      - rm image.ppm image.png
+      - touch image.png
+      - rm image.png
   build:
     cmds:
-      - build -o raytracer ./cmd
+      - go build -o raytracer ./cmd
+  install-deps:
+    cmds:
+      - brew install sdl2{,_image,_mixer,_ttf,_gfx} pkg-config
+      - go mod download
