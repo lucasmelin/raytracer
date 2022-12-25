@@ -49,8 +49,8 @@ type Options struct {
 
 // disp will update the display with the pixels as they get rendered by each goroutine.
 func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) {
-	// Create an image from the generated pixels.
-	image, err := sdl.CreateRGBSurfaceFrom(
+	// Create an img from the generated pixels.
+	img, err := sdl.CreateRGBSurfaceFrom(
 		// https://pkg.go.dev/unsafe#Pointer
 		unsafe.Pointer(&pixels[0]),
 		int32(scene.width),
@@ -60,10 +60,10 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 	if err != nil {
 		panic(err)
 	}
-	defer image.Free()
+	defer img.Free()
 
-	// Copy to image tothe screen.
-	err = image.Blit(nil, screen, nil)
+	// Copy to img to the screen.
+	err = img.Blit(nil, screen, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -115,7 +115,7 @@ func main() {
 	options := Options{}
 
 	flag.IntVar(&options.Width, "w", 800, "width in pixels")
-	flag.IntVar(&options.Height, "h", 800, "height in pixels")
+	flag.IntVar(&options.Height, "h", 400, "height in pixels")
 	flag.IntVar(&options.CPU, "cpu", runtime.NumCPU(), "number of CPU to use (default number of available CPUs)")
 	flag.Int64Var(&options.Seed, "seed", 1992, "seed for random number generator")
 	flag.Var(&options.RaysPerPixel, "r", "comma separated list of rays-per-pixel")
@@ -124,8 +124,8 @@ func main() {
 	flag.Parse()
 
 	if len(options.RaysPerPixel) == 0 {
-		// Default 1 ray on the first pass, 199 rays on the subsequent pass.
-		options.RaysPerPixel = []int{10, 2990}
+		// Default 10 rays on the first pass, 90 rays on the subsequent pass.
+		options.RaysPerPixel = []int{10, 90}
 	}
 
 	rand.Seed(options.Seed)

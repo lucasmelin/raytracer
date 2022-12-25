@@ -12,8 +12,10 @@ type Material interface {
 	Emit(rec *HitRecord) Color
 }
 
+// nonEmitter represents an emitter that does not emit light.
 type nonEmitter struct{}
 
+// Emit returns Black.
 func (n nonEmitter) Emit(rec *HitRecord) Color {
 	return Black
 }
@@ -90,24 +92,29 @@ func (d Dielectric) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geo
 	return true, &White, geometry.NewRay(rec.p, out.ToUnit(), r.Time, r.Rnd)
 }
 
+// schlick calculates Schlick's approximation for the contribution of the Fresnel factor in the reflection of light from a surface.
 func schlick(cos float64, refIndex float64) float64 {
 	r := (1 - refIndex) / (1 + refIndex)
 	r = r * r
-	return r + (1-r)*math.Pow((1-cos), 5)
+	return r + (1-r)*math.Pow(1-cos, 5)
 }
 
+// Light represents a material that emits light.
 type Light struct {
 	Solid Solid
 }
 
+// NewLight returns a new Light.
 func NewLight(c Color) *Light {
 	return &Light{Solid: NewSolid(c)}
 }
 
+// Scatter does not reflect light rays. A light source emits rays but does not reflect rays.
 func (l Light) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
 	return false, &Color{}, &geometry.Ray{}
 }
 
+// Emit returns the Color of the ray at the coordinates of the given HitRecord.
 func (l Light) Emit(rec *HitRecord) Color {
 	return l.Solid.At(rec.u, rec.v, rec.p)
 }

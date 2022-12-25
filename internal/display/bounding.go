@@ -8,10 +8,12 @@ type AABB struct {
 	Max geometry.Vec
 }
 
+// NewAABB creates a new AABB.
 func NewAABB(min geometry.Vec, max geometry.Vec) *AABB {
 	return &AABB{Min: min, Max: max}
 }
 
+// Hit returns true if the given ray hits the bounding box.
 func (ab *AABB) Hit(ray *geometry.Ray, dMin float64, dMax float64) bool {
 	// Check X
 	invD := 1 / ray.Direction.X
@@ -73,14 +75,15 @@ func (ab *AABB) Add(ab2 *AABB) *AABB {
 	return NewAABB(ab.Min.Min(ab2.Min), ab.Max.Max(ab2.Max))
 }
 
-func (a *AABB) Corners() []geometry.Vec {
+// Corners returns the vector representing the corners of the bounding box.
+func (ab *AABB) Corners() []geometry.Vec {
 	c := make([]geometry.Vec, 0, 8)
 	for i := 0.0; i < 2; i++ {
 		for j := 0.0; j < 2; j++ {
 			for k := 0.0; k < 2; k++ {
-				x := i*a.Min.X + (1-i)*a.Max.X
-				y := j*a.Min.Y + (1-j)*a.Max.Y
-				z := k*a.Min.Z + (1-k)*a.Max.Z
+				x := i*ab.Min.X + (1-i)*ab.Max.X
+				y := j*ab.Min.Y + (1-j)*ab.Max.Y
+				z := k*ab.Min.Z + (1-k)*ab.Max.Z
 				c = append(c, geometry.NewVec(x, y, z))
 			}
 		}
@@ -88,6 +91,7 @@ func (a *AABB) Corners() []geometry.Vec {
 	return c
 }
 
-func (a *AABB) Extend(v geometry.Vec) *AABB {
-	return NewAABB(a.Min.Min(v), a.Max.Max(v))
+// Extend expands the bounding box to include the given vector v.
+func (ab *AABB) Extend(v geometry.Vec) *AABB {
+	return NewAABB(ab.Min.Min(v), ab.Max.Max(v))
 }

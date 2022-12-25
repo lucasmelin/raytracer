@@ -153,7 +153,7 @@ func Refract(u Unit, n Unit, ratio float64) (bool, *Unit) {
 	return true, &u2
 }
 
-// Randgeometry.VecInSphere creates a random geometry.Vec within a unit sphere.
+// RandVecInSphere creates a random geometry.Vec within a unit sphere.
 func RandVecInSphere(rnd Rnd) Vec {
 	for {
 		v := Vec{rnd.Float64(), rnd.Float64(), rnd.Float64()}.Scale(2).Sub(Vec{1, 1, 1})
@@ -163,7 +163,7 @@ func RandVecInSphere(rnd Rnd) Vec {
 	}
 }
 
-// Randgeometry.VecInDisk creates a random geometry.Vec within a unit disk.
+// RandVecInDisk creates a random geometry.Vec within a unit disk.
 func RandVecInDisk(rnd Rnd) Vec {
 	xy := Vec{1, 1, 0}
 	for {

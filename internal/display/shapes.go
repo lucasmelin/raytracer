@@ -31,7 +31,7 @@ func NewSphere(center geometry.Vec, radius float64, material Material) *Sphere {
 	return &Sphere{Center: center, Radius: radius, Material: material}
 }
 
-// NewSphere creates a new Sphere with two centers separated by times t0 and t1.
+// NewMovingSphere creates a new Sphere with two centers separated by times t0 and t1.
 func NewMovingSphere(center0 geometry.Vec, center1 geometry.Vec, t0 float64, t1 float64, radius float64, material Material) *MovingSphere {
 	return &MovingSphere{
 		Center0:  center0,
@@ -44,7 +44,7 @@ func NewMovingSphere(center0 geometry.Vec, center1 geometry.Vec, t0 float64, t1 
 }
 
 // Hit finds the first intersection between a ray and the sphere's surface.
-func (s Sphere) Hit(r *geometry.Ray, tMin float64, tMax float64) (bool, *HitRecord) {
+func (s *Sphere) Hit(r *geometry.Ray, tMin float64, tMax float64) (bool, *HitRecord) {
 	oc := r.Origin.Sub(s.Center)
 	a := r.Direction.Dot(r.Direction)
 	halfb := oc.Dot(r.Direction.Vec)
@@ -88,7 +88,7 @@ func (s Sphere) Hit(r *geometry.Ray, tMin float64, tMax float64) (bool, *HitReco
 }
 
 // Hit finds the first intersection between a ray and the moving sphere's surface.
-func (s MovingSphere) Hit(r *geometry.Ray, dMin float64, dMax float64) (bool, *HitRecord) {
+func (s *MovingSphere) Hit(r *geometry.Ray, dMin float64, dMax float64) (bool, *HitRecord) {
 	oc := r.Origin.Sub(s.Center(r.Time))
 	a := r.Direction.Dot(r.Direction)
 	b := oc.Dot(r.Direction.Vec)
@@ -142,6 +142,7 @@ func (s *Sphere) Surface(p geometry.Vec) (geometry.Unit, Material) {
 	return p.Sub(s.Center).Scale(s.Radius).ToUnit(), s.Material
 }
 
+// Box returns the bounding box of the Sphere.
 func (s *Sphere) Box(t0 float64, t1 float64) *AABB {
 	return NewAABB(
 		s.Center.Sub(geometry.NewVec(s.Radius, s.Radius, s.Radius)),
@@ -149,6 +150,7 @@ func (s *Sphere) Box(t0 float64, t1 float64) *AABB {
 	)
 }
 
+// Box returns the bounding box of the MovingSphere.
 func (s *MovingSphere) Box(t0 float64, t1 float64) *AABB {
 	box0 := NewAABB(
 		s.Center(t0).Sub(geometry.NewVec(s.Radius, s.Radius, s.Radius)),
@@ -179,6 +181,7 @@ func (s *MovingSphere) UV(p geometry.Vec, t float64) (float64, float64) {
 	return u, v
 }
 
+// Rectangle represents a 2-dimensional rectangle.
 type Rectangle struct {
 	Min      geometry.Vec
 	Max      geometry.Vec
@@ -186,6 +189,7 @@ type Rectangle struct {
 	Material Material
 }
 
+// NewRectangle returns a new Rectangle.
 func NewRectangle(min geometry.Vec, max geometry.Vec, material Material) *Rectangle {
 	rect := Rectangle{
 		Min:      min,
@@ -289,9 +293,9 @@ func (rect *Rectangle) Hit(ray *geometry.Ray, dMin float64, dMax float64) (bool,
 }
 
 // Box returns the axis-Aligned bounding box encompassing the Rectangle.
-func (r *Rectangle) Box(t0, t1 float64) (box *AABB) {
+func (rect *Rectangle) Box(t0, t1 float64) (box *AABB) {
 	b := geometry.NewVec(0, 0, 0)
-	switch r.Axis {
+	switch rect.Axis {
 	case 0:
 		b.X = 0.001
 	case 1:
@@ -299,15 +303,17 @@ func (r *Rectangle) Box(t0, t1 float64) (box *AABB) {
 	case 2:
 		b.Z = 0.001
 	default:
-		panic(fmt.Sprintf("No valid bias for axis %d", r.Axis))
+		panic(fmt.Sprintf("No valid bias for axis %d", rect.Axis))
 	}
-	return NewAABB(r.Min.Sub(b), r.Max.Add(b))
+	return NewAABB(rect.Min.Sub(b), rect.Max.Add(b))
 }
 
+// Block represents a 3-dimensional block or box made up of rectangles.
 type Block struct {
 	List
 }
 
+// NewBlock returns a new Block.
 func NewBlock(min geometry.Vec, max geometry.Vec, material Material) *Block {
 	return &Block{List: *NewList(
 		NewRectangle(geometry.NewVec(min.X, min.Y, max.Z), geometry.NewVec(max.X, max.Y, max.Z), material),
@@ -321,12 +327,14 @@ func NewBlock(min geometry.Vec, max geometry.Vec, material Material) *Block {
 	)}
 }
 
+// Volume represents a HitBoxer filled with a material with a given density.
 type Volume struct {
 	box     HitBoxer
 	density float64
 	phase   Material
 }
 
+// NewVolume returns a new volume.
 func NewVolume(box HitBoxer, density float64, phase Material) *Volume {
 	return &Volume{box: box, density: density, phase: phase}
 }

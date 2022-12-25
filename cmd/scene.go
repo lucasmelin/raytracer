@@ -138,7 +138,7 @@ func (scene *Scene) Render(parallelCount int) (Pixels, chan struct{}) {
 					// Process a line of pixels
 					for ps := range pixelsToProcess {
 
-						// Display the line without gamma correctionso that it's more visible.
+						// Display the line without gamma correction so that it's more visible.
 						for _, p := range ps {
 							if p.raysPerPixel > 0 {
 								col := p.color.Scale(1.0 / float64(p.raysPerPixel))
@@ -184,7 +184,7 @@ func rayColor(r *geometry.Ray, hb display.HitBoxer, depth int) display.Color {
 	}
 	if hit, hr := hb.Hit(r, bias, math.MaxFloat64); hit {
 		if wasScattered, attenuation, scattered := hr.Material.Scatter(r, hr); wasScattered {
-			indirect := attenuation.Mult(rayColor(scattered, hb, depth+1))
+			indirect := attenuation.Mul(rayColor(scattered, hb, depth+1))
 			return hr.Material.Emit(hr).Add(indirect)
 		}
 		return hr.Material.Emit(hr)

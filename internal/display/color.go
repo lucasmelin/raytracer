@@ -16,6 +16,7 @@ type Color struct {
 	geometry.Vec
 }
 
+// NewColor creates a new color.
 func NewColor(e0, e1, e2 float64) Color {
 	return Color{
 		Vec: geometry.NewVec(e0, e1, e2),
@@ -43,7 +44,7 @@ func (c Color) Scale(n float64) Color {
 }
 
 // Mul returns the multiplication of two colors.
-func (c Color) Mult(c2 Color) Color {
+func (c Color) Mul(c2 Color) Color {
 	return Color{Vec: c.Vec.Mul(c2.Vec)}
 }
 
