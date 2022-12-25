@@ -62,16 +62,19 @@ func Clean() error {
 
 // Installs all system and Go dependencies.
 func (Install) Deps() error {
-	var sdlCommand []string
 	if runtime.GOOS == "linux" {
-		sdlCommand = []string{"sudo", "apt-get", "update", "&&", "sudo", "apt-get", "install", "libsdl2{,-image,-mixer,-ttf,-gfx}-dev"}
+		if err := sh.Run("sudo", "apt-get", "update"); err != nil {
+			return err
+		}
+		if err := sh.Run("sudo", "apt-get", "install", "libsdl2{,-image,-mixer,-ttf,-gfx}-dev"); err != nil {
+			return err
+		}
 	} else if runtime.GOOS == "darwin" {
-		sdlCommand = []string{"brew", "install", "sdl2{,_image,_mixer,_ttf,_gfx}", "pkg-config"}
+		if err := sh.Run("brew", "install", "sdl2{,_image,_mixer,_ttf,_gfx}", "pkg-config"); err != nil {
+			return err
+		}
 	} else {
 		return errors.New("unknown OS")
-	}
-	if err := sh.Run(sdlCommand[0], sdlCommand[1:]...); err != nil {
-		return err
 	}
 	return sh.Run("go", "mod", "download")
 }
