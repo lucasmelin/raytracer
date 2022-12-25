@@ -109,7 +109,8 @@ func NewLight(c Color) *Light {
 	return &Light{Solid: NewSolid(c)}
 }
 
-// Scatter does not reflect light rays. A light source emits rays but does not reflect rays.
+// Scatter does not reflect light rays.
+// A light source emits rays but does not reflect rays.
 func (l Light) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
 	return false, &Color{}, &geometry.Ray{}
 }
@@ -119,16 +120,19 @@ func (l Light) Emit(rec *HitRecord) Color {
 	return l.Solid.At(rec.u, rec.v, rec.p)
 }
 
+// Isotropic represents a material of constant density.
 type Isotropic struct {
 	albedo Solid
 	Rnd    geometry.Rnd
 	nonEmitter
 }
 
+// NewIsotropic returns a new Isotropic.
 func NewIsotropic(albedo Solid, rnd geometry.Rnd) *Isotropic {
 	return &Isotropic{albedo: albedo, Rnd: rnd}
 }
 
+// Scatter reflects light in a random direction.
 func (i *Isotropic) Scatter(r *geometry.Ray, rec *HitRecord) (bool, *Color, *geometry.Ray) {
 	color := i.albedo.At(rec.u, rec.v, rec.p)
 	r.Direction = geometry.RandUnit(r.Rnd)

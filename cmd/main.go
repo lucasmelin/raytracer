@@ -17,16 +17,16 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// RaysPerPixelList is used to define the number of rays per-pixel, per phase.
-type RaysPerPixelList []int
+// raysPerPixelList is used to define the number of rays per-pixel, per phase.
+type raysPerPixelList []int
 
-// String allows for printing the RaysPerPixelList.
-func (r *RaysPerPixelList) String() string {
+// String allows for printing the raysPerPixelList.
+func (r *raysPerPixelList) String() string {
 	return fmt.Sprint(*r)
 }
 
 // Set parses the number of rays to use per pixel, per phase.
-func (r *RaysPerPixelList) Set(value string) error {
+func (r *raysPerPixelList) Set(value string) error {
 	for _, e := range strings.Split(value, ",") {
 		i, err := strconv.Atoi(e)
 		if err != nil {
@@ -37,18 +37,18 @@ func (r *RaysPerPixelList) Set(value string) error {
 	return nil
 }
 
-// Options defines the command line options.
-type Options struct {
+// options defines the command line options.
+type options struct {
 	Width        int
 	Height       int
-	RaysPerPixel RaysPerPixelList
+	RaysPerPixel raysPerPixelList
 	Output       string
 	Seed         int64
 	CPU          int
 }
 
 // disp will update the display with the pixels as they get rendered by each goroutine.
-func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) {
+func disp(window *sdl.Window, screen *sdl.Surface, scene *scene, pixels pixels) {
 	// Create an img from the generated pixels.
 	img, err := sdl.CreateRGBSurfaceFrom(
 		// https://pkg.go.dev/unsafe#Pointer
@@ -75,7 +75,7 @@ func disp(window *sdl.Window, screen *sdl.Surface, scene *Scene, pixels Pixels) 
 }
 
 // saveImage saves the image to a file in png format.
-func saveImage(pixels Pixels, options Options) (bool, error) {
+func saveImage(pixels pixels, options options) (bool, error) {
 	if options.Output != "" {
 		f, err := os.OpenFile(options.Output, os.O_RDWR|os.O_CREATE, 0755)
 		if err != nil {
@@ -112,7 +112,7 @@ func saveImage(pixels Pixels, options Options) (bool, error) {
 }
 
 func main() {
-	options := Options{}
+	options := options{}
 
 	flag.IntVar(&options.Width, "w", 800, "width in pixels")
 	flag.IntVar(&options.Height, "h", 400, "height in pixels")
@@ -164,16 +164,16 @@ func main() {
 
 	camera, bvh := buildWeekOneWorld(options.Width, options.Height)
 
-	scene := &Scene{
+	scene := &scene{
 		width:        options.Width,
 		height:       options.Height,
 		raysPerPixel: options.RaysPerPixel,
 		camera:       camera,
 		hitBoxer:     bvh,
 	}
-	pixels, completed := scene.Render(options.CPU)
+	pixels, completed := scene.render(options.CPU)
 
-	// Show the initial render pass.
+	// Show the initial renderPixel pass.
 	if err = window.UpdateSurface(); err != nil {
 		newErr := fmt.Errorf("could not display screen: %w", err)
 		panic(newErr)
@@ -185,7 +185,7 @@ func main() {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch event.(type) {
 			case *sdl.QuitEvent:
-				fmt.Println("Render cancelled")
+				fmt.Println("render cancelled")
 				os.Exit(1)
 			}
 		}
@@ -200,7 +200,7 @@ func main() {
 			select {
 			case <-completed:
 				updateDisplay = false
-				fmt.Println("Render complete")
+				fmt.Println("render complete")
 				saved, err := saveImage(pixels, options)
 				if err != nil {
 					fmt.Printf("Error saving image: %q", err.Error())

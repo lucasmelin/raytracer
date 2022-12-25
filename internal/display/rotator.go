@@ -6,7 +6,7 @@ import (
 	"github.com/lucasmelin/raytracer/internal/geometry"
 )
 
-// RotateY contains a HitBoxer that is rotated along the Y-axis.
+// RotateY contains a surface that is rotated along the Y-axis.
 type RotateY struct {
 	Child    HitBoxer
 	sinTheta float64
@@ -30,6 +30,7 @@ func NewRotateY(child HitBoxer, angle float64) *RotateY {
 	return &ry
 }
 
+// Box returns a bounding box that encloses the surface.
 func (r *RotateY) Box(t0 float64, t1 float64) *AABB {
 	return r.box
 }

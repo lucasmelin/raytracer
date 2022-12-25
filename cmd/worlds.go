@@ -10,7 +10,7 @@ import (
 
 // buildWeekOneWorld sets up the world and camera for the cover of the
 // Ray Tracing the Next Week book.
-func buildWeekOneWorld(width int, height int) (Camera, *display.BVH) {
+func buildWeekOneWorld(width int, height int) (cameraSensor, *display.BVH) {
 	world := display.List{}
 	rnd := rand.New(rand.NewSource(rand.Int63()))
 	w := 100.0
@@ -59,7 +59,7 @@ func buildWeekOneWorld(width int, height int) (Camera, *display.BVH) {
 	lookFrom := geometry.NewVec(478, 278, -600)
 	aperture := 0.0
 	distToFocus := 10.0
-	camera := NewCamera(
+	camera := newCamera(
 		lookFrom,
 		lookAt,
 		geometry.NewVec(0, 1.0, 0),
@@ -72,7 +72,7 @@ func buildWeekOneWorld(width int, height int) (Camera, *display.BVH) {
 }
 
 // cornell is a simple Cornell box scene with two blocks made of smoke and fog.
-func cornellSmoke(width int, height int) (Camera, *display.BVH) {
+func cornellSmoke(width int, height int) (cameraSensor, *display.BVH) {
 	world := display.List{}
 	rnd := rand.New(rand.NewSource(rand.Int63()))
 	green := display.NewLambertian(display.NewSolid(display.NewColor(0.12, 0.45, 0.15)))
@@ -111,7 +111,7 @@ func cornellSmoke(width int, height int) (Camera, *display.BVH) {
 	lookFrom := geometry.NewVec(278, 278, -800)
 	aperture := 0.1
 	distToFocus := 10.0
-	camera := NewCamera(
+	camera := newCamera(
 		lookFrom,
 		lookAt,
 		geometry.NewVec(0, 1.0, 0),
@@ -124,7 +124,7 @@ func cornellSmoke(width int, height int) (Camera, *display.BVH) {
 }
 
 // cornell is a simple Cornell box scene with two blocks.
-func cornell(width int, height int) (Camera, *display.BVH) {
+func cornell(width int, height int) (cameraSensor, *display.BVH) {
 	world := display.List{}
 	green := display.NewLambertian(display.NewSolid(display.NewColor(0.12, 0.45, 0.15)))
 	red := display.NewLambertian(display.NewSolid(display.NewColor(0.65, 0.05, 0.05)))
@@ -156,7 +156,7 @@ func cornell(width int, height int) (Camera, *display.BVH) {
 	lookFrom := geometry.NewVec(278, 278, -800)
 	aperture := 0.1
 	distToFocus := 10.0
-	camera := NewCamera(
+	camera := newCamera(
 		lookFrom,
 		lookAt,
 		geometry.NewVec(0, 1.0, 0),
@@ -169,7 +169,7 @@ func cornell(width int, height int) (Camera, *display.BVH) {
 }
 
 // simpleLight is a scene with a Perlin-textured sphere and a rectangle light.
-func simpleLight(width int, height int) (Camera, *display.BVH) {
+func simpleLight(width int, height int) (cameraSensor, *display.BVH) {
 	world := display.List{}
 	rnd := rand.New(rand.NewSource(rand.Int63()))
 	perlin := display.NewNoise(rnd, 4)
@@ -193,7 +193,7 @@ func simpleLight(width int, height int) (Camera, *display.BVH) {
 	lookFrom := geometry.NewVec(24, 4, 6)
 	aperture := 0.4
 	distToFocus := 10.0
-	camera := NewCamera(
+	camera := newCamera(
 		lookFrom,
 		lookAt,
 		geometry.NewVec(0, 1.0, 0),
@@ -206,7 +206,7 @@ func simpleLight(width int, height int) (Camera, *display.BVH) {
 }
 
 // jupiter is a simple sphere with a projection map of Jupiter.
-func jupiter(width int, height int) (Camera, *display.Sphere) {
+func jupiter(width int, height int) (cameraSensor, *display.Sphere) {
 	f, err := os.Open("assets/jupiter.jpeg")
 	if err != nil {
 		panic(err)
@@ -219,7 +219,7 @@ func jupiter(width int, height int) (Camera, *display.Sphere) {
 	lookFrom := geometry.NewVec(13, 2, 3)
 	aperture := 0.1
 	distToFocus := 10.0
-	camera := NewCamera(
+	camera := newCamera(
 		lookFrom,
 		lookAt,
 		geometry.NewVec(0, 1.0, 0),
@@ -231,7 +231,7 @@ func jupiter(width int, height int) (Camera, *display.Sphere) {
 	return camera, display.NewSphere(geometry.NewVec(0, 0, 0), 2, display.NewLambertian(t))
 }
 
-func buildTwoPerlinSpheresWorld(width, height int) (Camera, *display.BVH) {
+func buildTwoPerlinSpheresWorld(width, height int) (cameraSensor, *display.BVH) {
 	world := display.List{}
 	rnd := rand.New(rand.NewSource(rand.Int63()))
 	perlin := display.NewNoise(rnd, 5)
@@ -251,7 +251,7 @@ func buildTwoPerlinSpheresWorld(width, height int) (Camera, *display.BVH) {
 	lookFrom := geometry.NewVec(13, 2, 3)
 	aperture := 0.1
 	distToFocus := 10.0
-	camera := NewCamera(
+	camera := newCamera(
 		lookFrom,
 		lookAt,
 		geometry.NewVec(0, 1.0, 0),
@@ -266,7 +266,7 @@ func buildTwoPerlinSpheresWorld(width, height int) (Camera, *display.BVH) {
 
 // buildFinalWorld sets up the world and camera for the cover of the
 // Ray Tracing in One Weekend book.
-func buildFinalWorld(width, height int) (Camera, *display.BVH) {
+func buildFinalWorld(width, height int) (cameraSensor, *display.BVH) {
 	world := display.List{}
 	maxSpheres := 500
 
@@ -359,7 +359,7 @@ func buildFinalWorld(width, height int) (Camera, *display.BVH) {
 	lookFrom := geometry.NewVec(13, 2, 3)
 	aperture := 0.1
 	distToFocus := 10.0
-	camera := NewCamera(
+	camera := newCamera(
 		lookFrom,
 		lookAt,
 		geometry.NewVec(0, 1.0, 0),

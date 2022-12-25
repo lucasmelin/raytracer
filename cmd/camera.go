@@ -6,9 +6,9 @@ import (
 	"github.com/lucasmelin/raytracer/internal/geometry"
 )
 
-// Camera is an interface that computes a ray.
+// cameraSensor is an interface that computes a ray.
 // A random number source is provided for consistency, testing and performance benefits.
-type Camera interface {
+type cameraSensor interface {
 	ray(rnd geometry.Rnd, u, v float64) *geometry.Ray
 }
 
@@ -23,7 +23,7 @@ type camera struct {
 	lensRadius      float64
 }
 
-func NewCamera(lookFrom geometry.Vec, lookAt geometry.Vec, vup geometry.Vec, vfov float64, aspect float64, aperture float64, focusDist float64) Camera {
+func newCamera(lookFrom geometry.Vec, lookAt geometry.Vec, vup geometry.Vec, vfov float64, aspect float64, aperture float64, focusDist float64) cameraSensor {
 	theta := vfov * math.Pi / 180.0
 	halfHeight := math.Tan(theta / 2.0)
 	halfWidth := aspect * halfHeight

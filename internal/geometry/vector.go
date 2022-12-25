@@ -124,7 +124,10 @@ func (v Vec) Zero() bool {
 
 // Dot returns the dot product of two unit vectors.
 func (u Unit) Dot(u2 Unit) float64 {
-	return u.X*u2.X + u.Y*u2.Y + u.Z*u2.Z
+	newX := u.X * u2.X
+	newY := u.Y * u2.Y
+	newZ := u.Z * u2.Z
+	return newX + newY + newZ
 }
 
 // Reflect reflects this unit vector about a normal vector n.
@@ -154,6 +157,9 @@ func Refract(u Unit, n Unit, ratio float64) (bool, *Unit) {
 }
 
 // RandVecInSphere creates a random geometry.Vec within a unit sphere.
+//
+// This algorithm works by selecting a random vector inside the unit cube, and then discarding the vector if it falls
+// outside the sphere. On average, we discard the vector 47.6% of the time.
 func RandVecInSphere(rnd Rnd) Vec {
 	for {
 		v := Vec{rnd.Float64(), rnd.Float64(), rnd.Float64()}.Scale(2).Sub(Vec{1, 1, 1})

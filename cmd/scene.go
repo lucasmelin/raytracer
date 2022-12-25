@@ -16,20 +16,20 @@ const (
 	renderDepth = 10
 )
 
-// Pixels represents the array of pixels to render.
-type Pixels []uint32
+// pixels represents the array of pixels to renderPixel.
+type pixels []uint32
 
-// Scene represents the scene to Render.
-type Scene struct {
+// scene represents the scene to render.
+type scene struct {
 	width, height int
-	raysPerPixel  []int // array index represents the render pass
-	camera        Camera
+	raysPerPixel  []int // array index represents the renderPixel pass
+	camera        cameraSensor
 	hitBoxer      display.HitBoxer
 }
 
 // pixel represents the pixel to be processed.
 //
-// x and y are the coordinates, k is the index in the Pixels array, color is the color
+// x and y are the coordinates, k is the index in the pixels array, color is the color
 // that has been computed by casting raysPerPixel through x/y coordinates.
 type pixel struct {
 	x            int
@@ -53,10 +53,10 @@ func split(buf []*pixel, n int) [][]*pixel {
 	return chunks
 }
 
-// render casts rays one at a time through a pixel and accumulates the color for the pixel.
+// renderPixel casts rays one at a time through a pixel and accumulates the color for the pixel.
 //
 // Returns the normalized and gamma corrected value while updating the pixel for further ray casting.
-func (scene *Scene) render(rnd geometry.Rnd, pixel *pixel, raysPerPixel int) uint32 {
+func (scene *scene) renderPixel(rnd geometry.Rnd, pixel *pixel, raysPerPixel int) uint32 {
 	c := pixel.color
 
 	for s := 0; s < raysPerPixel; s++ {
@@ -78,11 +78,11 @@ func (scene *Scene) render(rnd geometry.Rnd, pixel *pixel, raysPerPixel int) uin
 	return c.PixelValue()
 }
 
-// Render returns the array of pixels to be computed asynchronously and a channel
+// render returns the array of pixels to be computed asynchronously and a channel
 // for signaling that the processing is complete.
 // The image is split into lines, with each line being processed in a separate goroutine.
 // The image is progressively rendered using the passes defined in raysPerPixel.
-func (scene *Scene) Render(parallelCount int) (Pixels, chan struct{}) {
+func (scene *scene) render(parallelCount int) (pixels, chan struct{}) {
 	pixels := make([]uint32, scene.width*scene.height)
 	completed := make(chan struct{})
 
@@ -110,7 +110,7 @@ func (scene *Scene) Render(parallelCount int) (Pixels, chan struct{}) {
 		totalStart := time.Now()
 		accumulatedRaysPerPixel := 0
 
-		// Loop for each phase of the render.
+		// Loop for each phase of the renderPixel.
 		for _, rpp := range scene.raysPerPixel {
 
 			loopStart := time.Now()
@@ -146,19 +146,19 @@ func (scene *Scene) Render(parallelCount int) (Pixels, chan struct{}) {
 							}
 						}
 
-						// Render every pixel in the line one-by-one.
+						// render every pixel in the line one-by-one.
 						for _, p := range ps {
-							pixels[p.k] = scene.render(rnd, p, rpp)
+							pixels[p.k] = scene.renderPixel(rnd, p, rpp)
 						}
 					}
 					wg.Done()
 				}()
 			}
 
-			// Wait for the entire render pass.
+			// Wait for the entire renderPixel pass.
 			wg.Wait()
 
-			// Compute stats for the render pass.
+			// Compute stats for the renderPixel pass.
 			accumulatedRaysPerPixel += rpp
 
 			loopEnd := time.Now()
