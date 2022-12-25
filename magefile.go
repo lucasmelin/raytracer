@@ -66,7 +66,7 @@ func (Install) Deps() error {
 		if err := sh.Run("sudo", "apt-get", "update"); err != nil {
 			return err
 		}
-		if err := sh.Run("sudo", "apt-get", "install", "libsdl2{,-image,-mixer,-ttf,-gfx}-dev"); err != nil {
+		if err := sh.Run("sudo", "apt-get", "install", "-y", "libsdl2-image-dev", "libsdl2-mixer-dev", "libsdl2-ttf-dev", "libsdl2-gfx-dev"); err != nil {
 			return err
 		}
 	} else if runtime.GOOS == "darwin" {
