@@ -70,7 +70,7 @@ func (Install) Deps() error {
 			return err
 		}
 	} else if runtime.GOOS == "darwin" {
-		if err := sh.Run("brew", "install", "sdl2{,_image,_mixer,_ttf,_gfx}", "pkg-config"); err != nil {
+		if err := sh.Run("brew", "install", "sdl2_image", "sdl2_mixer", "sdl2_ttf", "sdl2_gfx", "pkg-config"); err != nil {
 			return err
 		}
 	} else {
