@@ -64,7 +64,7 @@ func Clean() error {
 func (Install) Deps() error {
 	var sdlCommand []string
 	if runtime.GOOS == "linux" {
-		sdlCommand = []string{"sudo", "apt", "install", "libsdl2{,-image,-mixer,-ttf,-gfx}-dev"}
+		sdlCommand = []string{"sudo", "apt-get", "update", "&&", "sudo", "apt-get", "install", "libsdl2{,-image,-mixer,-ttf,-gfx}-dev"}
 	} else if runtime.GOOS == "darwin" {
 		sdlCommand = []string{"brew", "install", "sdl2{,_image,_mixer,_ttf,_gfx}", "pkg-config"}
 	} else {
