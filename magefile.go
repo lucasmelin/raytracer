@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -61,7 +62,15 @@ func Clean() error {
 
 // Installs all system and Go dependencies.
 func (Install) Deps() error {
-	if err := sh.Run("brew", "install", "sdl2{,_image,_mixer,_ttf,_gfx}", "pkg-config"); err != nil {
+	var sdlCommand []string
+	if runtime.GOOS == "linux" {
+		sdlCommand = []string{"sudo", "apt", "install", "libsdl2{,-image,-mixer,-ttf,-gfx}-dev"}
+	} else if runtime.GOOS == "darwin" {
+		sdlCommand = []string{"brew", "install", "sdl2{,_image,_mixer,_ttf,_gfx}", "pkg-config"}
+	} else {
+		return errors.New("unknown OS")
+	}
+	if err := sh.Run(sdlCommand[0], sdlCommand[1:]...); err != nil {
 		return err
 	}
 	return sh.Run("go", "mod", "download")
@@ -69,6 +78,7 @@ func (Install) Deps() error {
 
 // Runs the unit tests.
 func Test() error {
+	mg.Deps(Install.Deps)
 	if _, err := exec.LookPath("gotestsum"); err == nil {
 		output, err := sh.Output("gotestsum", "--no-color=false")
 		fmt.Printf("%s\n", output)
