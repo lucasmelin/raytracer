@@ -1,15 +1,13 @@
 <h1 align="center"> Raytracer </h1>
 
 <p align="center">
-Implementation of the ray-tracing in one weekend <a href="https://raytracing.github.io/">book series</a> by Peter Shirley.
+Implementation of the <b>Ray Tracing in One Weekend</b> <a href="https://raytracing.github.io/">book series</a> by Peter Shirley.
 <br/>
 <br/>
 <a href="https://magefile.org">
-<img alt="Built with Mage" src="https://img.shields.io/static/v1?label=BUILT%20WITH&message=MAGE&colorA=363a4f&colorB=cba6f7&style=for-the-badge">
-</a>
-<a href="https://img.shields.io/github/actions/workflow/status/lucasmelin/raytracer/test.yml?colorA=363a4f&colorB=a6da95&label=TESTS&style=for-the-badge">
-<img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/lucasmelin/raytracer/test.yml?colorA=363a4f&colorB=a6da95&label=TESTS&style=for-the-badge">
-</a>
+<img alt="Built with Mage" src="https://img.shields.io/static/v1?label=BUILT%20WITH&message=MAGE&colorA=363a4f&colorB=cba6f7&style=for-the-badge"></a>
+<a href="https://github.com/lucasmelin/raytracer/actions/workflows/test.yml">
+<img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/lucasmelin/raytracer/test.yml?colorA=363a4f&colorB=a6da95&label=TESTS&style=for-the-badge"></a>
 </p>
 
 ## Ray Tracing in One Weekend
