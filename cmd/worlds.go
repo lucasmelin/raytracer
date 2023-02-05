@@ -182,7 +182,13 @@ func simpleLight(width int, height int) (cameraSensor, *display.BVH) {
 			geometry.NewVec(0, 2, 0), 2, display.NewLambertian(perlin),
 		),
 		display.NewSphere(
-			geometry.NewVec(0, 7, 0), 2, display.NewLight(display.NewColor(0, 2, 4)),
+			geometry.NewVec(0, 7, -2), 1.5, display.NewLight(display.NewColor(0, 2, 4)),
+		),
+		display.NewSphere(
+			geometry.NewVec(0, 11, 2), 2, display.NewLight(display.NewColor(4, 2, 0)),
+		),
+		display.NewSphere(
+			geometry.NewVec(0, 8, 12), 1, display.NewLight(display.NewColor(4, 0, 0)),
 		),
 		display.NewRectangle(
 			geometry.NewVec(3, 1, -2), geometry.NewVec(5, 3, -2), display.NewLight(display.NewColor(4, 4, 4)),
@@ -192,7 +198,7 @@ func simpleLight(width int, height int) (cameraSensor, *display.BVH) {
 	lookAt := geometry.NewVec(0, 2, 0)
 	lookFrom := geometry.NewVec(24, 4, 6)
 	aperture := 0.4
-	distToFocus := 10.0
+	distToFocus := 20.0
 	camera := newCamera(
 		lookFrom,
 		lookAt,
@@ -206,7 +212,7 @@ func simpleLight(width int, height int) (cameraSensor, *display.BVH) {
 }
 
 // jupiter is a simple sphere with a projection map of Jupiter.
-func jupiter(width int, height int) (cameraSensor, *display.Sphere) {
+func jupiter(width int, height int) (cameraSensor, *display.BVH) {
 	f, err := os.Open("assets/jupiter.jpeg")
 	if err != nil {
 		panic(err)
@@ -228,7 +234,13 @@ func jupiter(width int, height int) (cameraSensor, *display.Sphere) {
 		aperture,
 		distToFocus,
 	)
-	return camera, display.NewSphere(geometry.NewVec(0, 0, 0), 2, display.NewLambertian(t))
+	world := display.List{
+		Hittables: []display.HitBoxer{
+			display.NewSphere(geometry.NewVec(0, 0, 0), 2, display.NewLambertian(t)),
+		},
+	}
+
+	return camera, display.NewBVH(0, 0, 1, world.Hittables...)
 }
 
 func buildTwoPerlinSpheresWorld(width, height int) (cameraSensor, *display.BVH) {
@@ -270,16 +282,13 @@ func buildFinalWorld(width, height int) (cameraSensor, *display.BVH) {
 	world := display.List{}
 	maxSpheres := 500
 
-	checkered := display.NewChecker(10,
-		display.NewSolid(display.NewColor(0.2, 0.3, 0.1)),
-		display.NewSolid(display.NewColor(0.9, 0.9, 0.9)),
-	)
+	ground := display.NewSolid(display.NewColor(0.5, 0.5, 0.5))
 
 	world.Hittables = append(world.Hittables,
 		&display.Sphere{
 			Center:   geometry.Vec{Y: -1000.0},
 			Radius:   1000,
-			Material: display.NewLambertian(checkered),
+			Material: display.NewLambertian(ground),
 		},
 		&display.Sphere{
 			Center:   geometry.NewVec(0, 1, 0),
@@ -297,6 +306,7 @@ func buildFinalWorld(width, height int) (cameraSensor, *display.BVH) {
 			Material: display.NewMetal(display.NewColor(0.7, 0.6, 0.5), 0),
 		},
 	)
+
 	for a := -11; a < 11 && len(world.Hittables) < maxSpheres; a++ {
 		for b := -11; b < 11 && len(world.Hittables) < maxSpheres; b++ {
 			chooseMaterial := rand.Float64()
@@ -355,7 +365,7 @@ func buildFinalWorld(width, height int) (cameraSensor, *display.BVH) {
 		}
 	}
 
-	lookAt := geometry.Vec{}
+	lookAt := geometry.NewVec(0, 0, 0)
 	lookFrom := geometry.NewVec(13, 2, 3)
 	aperture := 0.1
 	distToFocus := 10.0

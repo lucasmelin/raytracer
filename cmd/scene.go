@@ -56,14 +56,14 @@ func split(buf []*pixel, n int) [][]*pixel {
 // renderPixel casts rays one at a time through a pixel and accumulates the color for the pixel.
 //
 // Returns the normalized and gamma corrected value while updating the pixel for further ray casting.
-func (scene *scene) renderPixel(rnd geometry.Rnd, pixel *pixel, raysPerPixel int) uint32 {
+func (scene *scene) renderPixel(rnd geometry.Rnd, pixel *pixel, raysPerPixel int, bg backgrounder) uint32 {
 	c := pixel.color
 
 	for s := 0; s < raysPerPixel; s++ {
 		u := (float64(pixel.x) + rnd.Float64()) / float64(scene.width)
 		v := (float64(pixel.y) + rnd.Float64()) / float64(scene.height)
 		r := scene.camera.ray(rnd, u, v)
-		c = c.Add(rayColor(r, scene.hitBoxer, 0))
+		c = c.Add(rayColor(r, scene.hitBoxer, 0, bg))
 	}
 
 	pixel.color = c
@@ -82,7 +82,7 @@ func (scene *scene) renderPixel(rnd geometry.Rnd, pixel *pixel, raysPerPixel int
 // for signaling that the processing is complete.
 // The image is split into lines, with each line being processed in a separate goroutine.
 // The image is progressively rendered using the passes defined in raysPerPixel.
-func (scene *scene) render(parallelCount int) (pixels, chan struct{}) {
+func (scene *scene) render(parallelCount int, bg backgrounder) (pixels, chan struct{}) {
 	pixels := make([]uint32, scene.width*scene.height)
 	completed := make(chan struct{})
 
@@ -148,7 +148,7 @@ func (scene *scene) render(parallelCount int) (pixels, chan struct{}) {
 
 						// render every pixel in the line one-by-one.
 						for _, p := range ps {
-							pixels[p.k] = scene.renderPixel(rnd, p, rpp)
+							pixels[p.k] = scene.renderPixel(rnd, p, rpp, bg)
 						}
 					}
 					wg.Done()
@@ -177,17 +177,48 @@ func (scene *scene) render(parallelCount int) (pixels, chan struct{}) {
 }
 
 // rayColor computes the color of the ray and scatters more rays according to the properties of the hittable.
-func rayColor(r *geometry.Ray, hb display.HitBoxer, depth int) display.Color {
-	// If we've exceeded the ray bounce limit, no more light is gathered.
-	if depth >= renderDepth {
-		return display.Black
-	}
+func rayColor(r *geometry.Ray, hb display.HitBoxer, depth int, bg backgrounder) display.Color {
 	if hit, hr := hb.Hit(r, bias, math.MaxFloat64); hit {
+		// If we've exceeded the ray bounce limit, no more light is gathered.
+		if depth >= renderDepth {
+			return display.Black
+		}
 		if wasScattered, attenuation, scattered := hr.Material.Scatter(r, hr); wasScattered {
-			indirect := attenuation.Mul(rayColor(scattered, hb, depth+1))
+			indirect := attenuation.Mul(rayColor(scattered, hb, depth+1, bg))
 			return hr.Material.Emit(hr).Add(indirect)
 		}
 		return hr.Material.Emit(hr)
 	}
+	return bg.background(r)
+}
+
+type backgrounder interface {
+	background(r *geometry.Ray) display.Color
+}
+
+type BlueSky struct {
+}
+
+type BlackBackdrop struct {
+}
+
+type FlatSky struct {
+}
+
+func (b BlueSky) background(r *geometry.Ray) display.Color {
+	t := 0.5 * (r.Direction.ToUnit().Y + 1.0)
+	white := display.White.Scale(1.0 - t)
+	blue := display.NewColor(0.5, 0.7, 1.0).Scale(t)
+	return white.Add(blue)
+}
+
+func (b FlatSky) background(r *geometry.Ray) display.Color {
+	t := 0.4 * (r.Direction.ToUnit().Y + 1.0)
+	white := display.White.Scale(1.0 - t)
+	black := display.Black.Scale(t)
+	return white.Add(black)
+}
+
+func (b BlackBackdrop) background(r *geometry.Ray) display.Color {
 	return display.Black
 }

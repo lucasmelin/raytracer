@@ -27,7 +27,9 @@ func Build() error {
 // Runs the `raytracer` binary, building it first if necessary.
 func Run() error {
 	mg.Deps(Build)
-	return sh.Run("./raytracer")
+	output, err := sh.Output("./raytracer")
+	fmt.Printf("%s\n", output)
+	return err
 }
 
 // Displays the generated image, generating it first if necessary.

@@ -14,7 +14,18 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/lucasmelin/raytracer/internal/display"
 	"github.com/veandco/go-sdl2/sdl"
+)
+
+const (
+	FINAL_WORLD int = iota
+	WEEK_ONE
+	CORNELL_SMOKE
+	CORNELL
+	SIMPLE_LIGHT
+	JUPITER
+	PERLIN_SPHERES
 )
 
 // raysPerPixelList is used to define the number of rays per-pixel, per phase.
@@ -45,6 +56,7 @@ type options struct {
 	Output       string
 	Seed         int64
 	CPU          int
+	Scene        int
 }
 
 // disp will update the display with the pixels as they get rendered by each goroutine.
@@ -120,12 +132,13 @@ func main() {
 	flag.Int64Var(&options.Seed, "seed", 1992, "seed for random number generator")
 	flag.Var(&options.RaysPerPixel, "r", "comma separated list of rays-per-pixel")
 	flag.StringVar(&options.Output, "o", "image.png", "path to output file")
+	flag.IntVar(&options.Scene, "scene", FINAL_WORLD, "scene to render")
 
 	flag.Parse()
 
 	if len(options.RaysPerPixel) == 0 {
-		// Default 10 rays on the first pass, 90 rays on the subsequent pass.
-		options.RaysPerPixel = []int{10, 90}
+		// Default 10 rays on the first pass, 9990 rays on the subsequent pass.
+		options.RaysPerPixel = []int{10, 9990}
 	}
 
 	rand.Seed(options.Seed)
@@ -162,7 +175,36 @@ func main() {
 		panic(newErr)
 	}
 
-	camera, bvh := buildWeekOneWorld(options.Width, options.Height)
+	var camera cameraSensor
+	var bvh *display.BVH
+	var bg backgrounder
+	switch options.Scene {
+	case FINAL_WORLD:
+		camera, bvh = buildFinalWorld(options.Width, options.Height)
+		bg = BlueSky{}
+	case WEEK_ONE:
+		camera, bvh = buildWeekOneWorld(options.Width, options.Height)
+		bg = BlackBackdrop{}
+	case CORNELL_SMOKE:
+		camera, bvh = cornellSmoke(options.Width, options.Height)
+		bg = BlackBackdrop{}
+	case CORNELL:
+		camera, bvh = cornell(options.Width, options.Height)
+		bg = BlackBackdrop{}
+	case SIMPLE_LIGHT:
+		camera, bvh = simpleLight(options.Width, options.Height)
+		bg = BlackBackdrop{}
+	case JUPITER:
+		camera, bvh = jupiter(options.Width, options.Height)
+		bg = FlatSky{}
+	case PERLIN_SPHERES:
+		camera, bvh = buildTwoPerlinSpheresWorld(options.Width, options.Height)
+		bg = BlueSky{}
+	default:
+		fmt.Printf("unknown scene %d, defaulting to Final World\n", options.Scene)
+		camera, bvh = buildFinalWorld(options.Width, options.Height)
+		bg = BlueSky{}
+	}
 
 	scene := &scene{
 		width:        options.Width,
@@ -171,7 +213,7 @@ func main() {
 		camera:       camera,
 		hitBoxer:     bvh,
 	}
-	pixels, completed := scene.render(options.CPU)
+	pixels, completed := scene.render(options.CPU, bg)
 
 	// Show the initial renderPixel pass.
 	if err = window.UpdateSurface(); err != nil {
